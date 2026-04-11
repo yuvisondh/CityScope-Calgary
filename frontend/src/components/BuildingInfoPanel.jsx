@@ -72,7 +72,28 @@ const DL_STYLE = {
 const DT_STYLE = { color: PANEL_MUTED, fontSize: 12, fontWeight: 500, margin: 0 }
 const DD_STYLE = { color: PANEL_TEXT,  fontSize: 13, margin: 0, textAlign: 'right' }
 
+const FOOTNOTE_STYLE = {
+  marginTop: 20,
+  fontSize: 10,
+  color: PANEL_MUTED,
+  lineHeight: 1.5,
+}
+
 // ─── Helpers ───────────────────────────────────────────────────────────────────
+
+/**
+ * Returns a display-ready address string.
+ * Addresses with fewer than 3 whitespace-separated tokens lack a civic number
+ * (e.g. "16 AV SW" is a land parcel, not a unit on a street) and are
+ * presented as "Parcel on {address}" to avoid misleading the reader.
+ * @param {string} address
+ * @returns {string}
+ */
+function formatAddress(address) {
+  return address.trim().split(/\s+/).length < 3
+    ? `Parcel on ${address}`
+    : address
+}
 
 /**
  * Formats a numeric value as Canadian dollars with no decimal places.
@@ -125,7 +146,7 @@ function BuildingInfoPanel({ building, onClose }) {
   return (
     <div style={PANEL_STYLE}>
       <div style={HEADER_STYLE}>
-        <h2 style={TITLE_STYLE}>{address}</h2>
+        <h2 style={TITLE_STYLE}>{formatAddress(address)}</h2>
         <button style={CLOSE_BTN_STYLE} onClick={onClose} aria-label="Close panel">
           ✕
         </button>
@@ -140,6 +161,10 @@ function BuildingInfoPanel({ building, onClose }) {
         <Row label="Land Use"   value={land_use ?? '—'} />
         <Row label="Assessment" value={assessed_value ? formatCAD(assessed_value) : '—'} />
       </dl>
+
+      <p style={FOOTNOTE_STYLE}>
+        Data sourced from City of Calgary Open Data (2026 assessment roll + building footprints).
+      </p>
     </div>
   )
 }
