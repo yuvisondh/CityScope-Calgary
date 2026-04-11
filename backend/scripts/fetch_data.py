@@ -257,7 +257,8 @@ def join_and_build(footprints, assessment_index):
             assessed_value = int(num_floors * random.randint(60000, 200000))
             unmatched += 1
 
-        bldg_id = f"bldg_{hashlib.md5(f'{props.get(\"struct_id\",i)}'.encode()).hexdigest()[:8]}"
+        struct_key = props.get("struct_id") or str(i)
+        bldg_id = f"bldg_{hashlib.md5(struct_key.encode()).hexdigest()[:8]}"
 
         buildings.append({
             "id": bldg_id,
