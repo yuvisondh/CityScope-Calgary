@@ -1,9 +1,17 @@
+import { useState, useCallback } from 'react'
 import { useBuildings } from './hooks/useBuildings'
 import LoadingScreen from './components/LoadingScreen'
 import CityScene from './components/CityScene'
 
 function App() {
   const { buildings, loading, error } = useBuildings()
+  const [selectedBuilding, setSelectedBuilding] = useState(null)
+
+  // useCallback: stable reference keeps React.memo on BuildingMesh effective
+  const handleBuildingClick = useCallback((building) => {
+    setSelectedBuilding(building)
+    console.log('[App] building selected:', building.id, building.address)
+  }, [])
 
   if (loading) return <LoadingScreen />
 
@@ -17,7 +25,10 @@ function App() {
 
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
-      <CityScene buildings={buildings} />
+      <CityScene
+        buildings={buildings}
+        onBuildingClick={handleBuildingClick}
+      />
       <div style={{
         position: 'absolute',
         top: 16,
