@@ -5,8 +5,9 @@ import { latLonToXZ } from '../utils/geo'
 // Rotation maps ExtrudeGeometry's +Z extrusion → world +Y (up)
 const GROUP_ROT = [-Math.PI / 2, 0, 0]
 
-const DEFAULT_COLOR  = '#3b7dd8'
-const SELECTED_COLOR = '#f59e0b'
+const DEFAULT_COLOR   = '#3b7dd8'
+const SELECTED_COLOR  = '#f59e0b'
+const HIGHLIGHT_COLOR = '#f97316'
 
 /** Builds a THREE.Shape from a GeoJSON footprint ring ([lon, lat][] format). */
 function buildShape(footprint) {
@@ -24,9 +25,11 @@ function buildShape(footprint) {
  * Fires onClick(building) on pointer click; stopPropagation prevents
  * bubbling through overlapping buildings in the scene graph.
  *
- * @param {{ building: Object, isSelected: boolean, onClick: Function }} props
+ * Color priority: isSelected (amber) > isHighlighted (orange) > default (blue).
+ *
+ * @param {{ building: Object, isSelected: boolean, isHighlighted: boolean, onClick: Function }} props
  */
-function BuildingMesh({ building, isSelected, onClick }) {
+function BuildingMesh({ building, isSelected, isHighlighted, onClick }) {
   const { footprint, height_m } = building
 
   const shape = useMemo(() => buildShape(footprint), [footprint])
@@ -46,7 +49,9 @@ function BuildingMesh({ building, isSelected, onClick }) {
       <mesh castShadow receiveShadow onClick={handleClick}>
         <extrudeGeometry args={extrudeArgs} />
         {/* R3F updates color in-place on the existing material — no disposal needed */}
-        <meshStandardMaterial color={isSelected ? SELECTED_COLOR : DEFAULT_COLOR} />
+        <meshStandardMaterial
+          color={isSelected ? SELECTED_COLOR : isHighlighted ? HIGHLIGHT_COLOR : DEFAULT_COLOR}
+        />
       </mesh>
     </group>
   )

@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import BuildingMesh from './BuildingMesh'
@@ -18,7 +19,10 @@ function Ground() {
   )
 }
 
-export default function CityScene({ buildings, selectedBuildingId, onBuildingClick }) {
+export default function CityScene({ buildings, selectedBuildingId, matchedIds, onBuildingClick }) {
+  // Set for O(1) highlight lookup (js-index-maps) — recomputed only when matchedIds changes
+  const matchedSet = useMemo(() => new Set(matchedIds), [matchedIds])
+
   return (
     <Canvas camera={CAMERA} shadows style={{ background: '#0d1117' }}>
       <ambientLight intensity={0.35} />
@@ -34,6 +38,7 @@ export default function CityScene({ buildings, selectedBuildingId, onBuildingCli
           key={building.id}
           building={building}
           isSelected={selectedBuildingId === building.id}
+          isHighlighted={matchedSet.has(building.id)}
           onClick={onBuildingClick}
         />
       ))}
