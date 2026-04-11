@@ -3,36 +3,98 @@ import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import BuildingMesh from './BuildingMesh'
 
-// Hoisted constants — no new arrays on re-render (rendering-hoist-jsx)
+// ─── Scene constants (all colors reference DESIGN_SPEC.md tokens) ─────────────
 // Camera pulled back to show the full ~846m × 518m Beltline dataset
 const CAMERA = { position: [0, 500, 750], fov: 55, near: 0.1, far: 5000 }
-const GROUND_ARGS = [2000, 2000]
-const GROUND_ROT = [-Math.PI / 2, 0, 0]
-const DIR_LIGHT_POS = [200, 400, 200]
 
+// Canvas background — var(--bg-base) equivalent for the Three.js canvas
+const SCENE_BG = '#1a1815'
+
+// Ground plane — var(--scene-ground), slightly darker than bg-base so the
+// ground reads as visually below the buildings, not the same plane
+const GROUND_COLOR = '#0e0c09'
+const GROUND_ARGS  = [2000, 2000]
+const GROUND_ROT   = [-Math.PI / 2, 0, 0]
+
+// Survey grid — var(--scene-grid), thin warm-grey lines at 50m intervals
+const GRID_SIZE      = 2000
+const GRID_DIVISIONS = 40          // 2000m / 40 = 50m per cell
+const GRID_COLOR     = '#3a342b'
+const GRID_Y_OFFSET  = 0.01       // just above ground to prevent z-fighting
+
+// Three-point lighting — warm sunlight primary, cool fill, warm ambient
+const AMBIENT_COLOR    = '#fff5e6'
+const AMBIENT_INTENSITY = 0.45
+
+const PRIMARY_LIGHT_POS       = [200, 400, 200]
+const PRIMARY_LIGHT_COLOR     = '#ffe9c9'
+const PRIMARY_LIGHT_INTENSITY = 0.85
+const SHADOW_MAP_SIZE         = [2048, 2048]
+
+const FILL_LIGHT_POS       = [-200, 200, -200]
+const FILL_LIGHT_COLOR     = '#aab8c4'
+const FILL_LIGHT_INTENSITY = 0.25
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+/** Ground plane — flat dark surface beneath the city. */
 function Ground() {
   return (
     <mesh rotation={GROUND_ROT} receiveShadow>
       <planeGeometry args={GROUND_ARGS} />
-      <meshStandardMaterial color="#1a2e1a" />
+      <meshStandardMaterial color={GROUND_COLOR} />
     </mesh>
   )
 }
 
+/**
+ * SurveyGrid — thin warm-grey grid lines at 50m intervals.
+ * Reads as a survey-grid reference; barely visible from default camera
+ * distance, more prominent only when zoomed in.
+ */
+function SurveyGrid() {
+  return (
+    <gridHelper
+      args={[GRID_SIZE, GRID_DIVISIONS, GRID_COLOR, GRID_COLOR]}
+      position={[0, GRID_Y_OFFSET, 0]}
+      material-transparent
+      material-opacity={0.15}
+    />
+  )
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
+
+/**
+ * CityScene — Three.js canvas containing the 3D city, ground plane, grid,
+ * lighting, and orbit controls.
+ *
+ * @param {{ buildings: Object[], selectedBuildingId: string|null, matchedIds: string[], onBuildingClick: Function }} props
+ */
 export default function CityScene({ buildings, selectedBuildingId, matchedIds, onBuildingClick }) {
   // Set for O(1) highlight lookup (js-index-maps) — recomputed only when matchedIds changes
   const matchedSet = useMemo(() => new Set(matchedIds), [matchedIds])
 
   return (
-    <Canvas camera={CAMERA} shadows style={{ background: '#0d1117' }}>
-      <ambientLight intensity={0.35} />
+    <Canvas camera={CAMERA} shadows style={{ background: SCENE_BG }}>
+      {/* Three-point lighting: warm ambient + warm directional primary + cool fill */}
+      <ambientLight color={AMBIENT_COLOR} intensity={AMBIENT_INTENSITY} />
       <directionalLight
-        position={DIR_LIGHT_POS}
-        intensity={1.2}
+        position={PRIMARY_LIGHT_POS}
+        color={PRIMARY_LIGHT_COLOR}
+        intensity={PRIMARY_LIGHT_INTENSITY}
         castShadow
-        shadow-mapSize={[2048, 2048]}
+        shadow-mapSize={SHADOW_MAP_SIZE}
       />
+      <directionalLight
+        position={FILL_LIGHT_POS}
+        color={FILL_LIGHT_COLOR}
+        intensity={FILL_LIGHT_INTENSITY}
+      />
+
       <Ground />
+      <SurveyGrid />
+
       {buildings.map(building => (
         <BuildingMesh
           key={building.id}
@@ -42,6 +104,7 @@ export default function CityScene({ buildings, selectedBuildingId, matchedIds, o
           onClick={onBuildingClick}
         />
       ))}
+
       <OrbitControls
         makeDefault
         maxPolarAngle={Math.PI / 2.1}
