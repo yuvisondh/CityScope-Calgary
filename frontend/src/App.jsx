@@ -1,14 +1,16 @@
 import { useState, useCallback } from 'react'
 import { useBuildings } from './hooks/useBuildings'
+import { useQuery } from './hooks/useQuery'
 import LoadingScreen from './components/LoadingScreen'
 import CityScene from './components/CityScene'
 import BuildingInfoPanel from './components/BuildingInfoPanel'
+import QueryInput from './components/QueryInput'
 
 function App() {
-  const { buildings, loading, error } = useBuildings()
+  const { buildings, loading, error: buildingsError } = useBuildings()
+  const { matchedIds, filters, methodUsed, loading: queryLoading, error: queryError, submitQuery, clearQuery } = useQuery()
   const [selectedBuilding, setSelectedBuilding] = useState(null)
 
-  // useCallback: stable references keep React.memo on BuildingMesh effective
   const handleBuildingClick = useCallback((building) => {
     setSelectedBuilding(building)
   }, [])
@@ -19,10 +21,10 @@ function App() {
 
   if (loading) return <LoadingScreen />
 
-  if (error) {
+  if (buildingsError) {
     return (
       <div style={{ padding: '2rem', fontFamily: 'sans-serif', color: 'red' }}>
-        Error: {error}
+        Error: {buildingsError}
       </div>
     )
   }
@@ -32,6 +34,7 @@ function App() {
       <CityScene
         buildings={buildings}
         selectedBuildingId={selectedBuilding?.id ?? null}
+        matchedIds={matchedIds}
         onBuildingClick={handleBuildingClick}
       />
 
@@ -40,6 +43,23 @@ function App() {
         onClose={handleClosePanel}
       />
 
+      {/* Query bar — bottom center */}
+      <div style={{
+        position: 'absolute',
+        bottom: 32,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 10,
+      }}>
+        <QueryInput
+          onSubmit={submitQuery}
+          loading={queryLoading}
+          error={queryError}
+          methodUsed={methodUsed}
+        />
+      </div>
+
+      {/* Status badge — top left */}
       <div style={{
         position: 'absolute',
         top: 16,
@@ -52,7 +72,9 @@ function App() {
         fontSize: 13,
         pointerEvents: 'none',
       }}>
-        {buildings.length} buildings loaded
+        {matchedIds.length > 0
+          ? `${matchedIds.length} / ${buildings.length} buildings matched`
+          : `${buildings.length} buildings loaded`}
       </div>
     </div>
   )
