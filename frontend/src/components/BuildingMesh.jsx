@@ -15,12 +15,14 @@ const MIN_HEIGHT = 3  // metres — prevents flat footprints from being invisibl
 const SELECTED_COLOR  = '#c8102e'  // var(--accent-flag)
 const HIGHLIGHT_COLOR = '#a00d24'  // var(--highlight-color), slightly desaturated
 
-// Zoning bucket base colors — warm desaturated palette
-const ZONING_COMMERCIAL  = '#c4a478'  // var(--zoning-commercial)
-const ZONING_MIXED       = '#9c8b6e'  // var(--zoning-mixed)
-const ZONING_RESIDENTIAL = '#7a8a78'  // var(--zoning-residential)
-const ZONING_INDUSTRIAL  = '#8a7560'  // var(--zoning-industrial)
-const ZONING_OTHER       = '#6e6a62'  // var(--zoning-other)
+// Zoning bucket base colors — revised for hue separation (sand, green, blue,
+// rose, grey). Mirrors CSS tokens in index.css; duplicated here because Three.js
+// materials accept hex strings, not CSS var() references.
+const ZONING_COMMERCIAL  = '#c4a478'  // var(--zoning-commercial) — warm sand
+const ZONING_MIXED       = '#8b9e8b'  // var(--zoning-mixed)       — sage green
+const ZONING_RESIDENTIAL = '#7895a3'  // var(--zoning-residential) — dusty blue
+const ZONING_INDUSTRIAL  = '#a08070'  // var(--zoning-industrial)  — clay rose
+const ZONING_OTHER       = '#8a8580'  // var(--zoning-other)       — warm concrete
 
 // ─── Material properties (DESIGN_SPEC.md Section 5) ───────────────────────────
 const ROUGHNESS = 0.85   // matte, no plasticky shine

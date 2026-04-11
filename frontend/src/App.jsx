@@ -115,17 +115,22 @@ function App() {
         position: 'absolute',
         top: 16,
         left: 16,
-        background: 'rgba(0,0,0,0.5)',
-        color: '#fff',
+        background: 'var(--bg-panel)',
+        color: 'var(--text-secondary)',
+        border: 'var(--border-panel)',
+        borderRadius: 'var(--radius-panel)',
+        boxShadow: 'var(--shadow-panel)',
         padding: '6px 12px',
-        borderRadius: 6,
-        fontFamily: 'sans-serif',
-        fontSize: 13,
+        fontFamily: 'var(--sans)',
+        fontSize: 10,
+        fontWeight: 400,
+        lineHeight: 1.4,
+        letterSpacing: '0.02em',
         pointerEvents: 'none',
       }}>
         {matchedIds.length > 0
-          ? `${matchedIds.length} / ${buildings.length} buildings matched`
-          : `${buildings.length} buildings loaded`}
+          ? `Beltline, Calgary \u2014 ${matchedIds.length} / ${buildings.length} matched`
+          : `Beltline, Calgary \u2014 ${buildings.length} buildings loaded`}
       </div>
     </div>
   )

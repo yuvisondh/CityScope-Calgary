@@ -23,11 +23,14 @@
   --accent-flag-muted: rgba(200, 16, 46, 0.12);
 
   /* ── Building Zoning Bucket Colors ──────────────────────────────────────── */
+  /* Revised from original spec for better hue separation — five distinct    */
+  /* hues (sand, green, blue, rose, grey) that still read as a muted city    */
+  /* palette. Original spec had all five in the warm-brown range.            */
   --zoning-commercial:  #c4a478;   /* warm sand — CC-*, C-COR, C-C2        */
-  --zoning-mixed:       #9c8b6e;   /* taupe — CR20, M-CG, M-X*, MU-*      */
-  --zoning-residential: #7a8a78;   /* sage grey — RC-G, R-*                */
-  --zoning-industrial:  #8a7560;   /* warm brown — I-*, S-*, DC            */
-  --zoning-other:       #6e6a62;   /* neutral grey-brown — fallback        */
+  --zoning-mixed:       #8b9e8b;   /* sage green — CR20, M-CG, M-X*, MU-* */
+  --zoning-residential: #7895a3;   /* dusty blue — RC-G, R-*               */
+  --zoning-industrial:  #a08070;   /* clay rose — I-*, S-*, DC             */
+  --zoning-other:       #8a8580;   /* warm concrete — fallback             */
 
   /* ── Selection / Highlight ──────────────────────────────────────────────── */
   --selection-color:  #c8102e;     /* same as accent-flag                  */
