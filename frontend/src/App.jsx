@@ -1,14 +1,34 @@
 import { useState, useCallback } from 'react'
 import { useBuildings } from './hooks/useBuildings'
 import { useQuery } from './hooks/useQuery'
+import { useProjects } from './hooks/useProjects'
 import LoadingScreen from './components/LoadingScreen'
 import CityScene from './components/CityScene'
 import BuildingInfoPanel from './components/BuildingInfoPanel'
 import QueryInput from './components/QueryInput'
+import ProjectPanel from './components/ProjectPanel'
 
 function App() {
   const { buildings, loading, error: buildingsError } = useBuildings()
-  const { matchedIds, methodUsed, loading: queryLoading, error: queryError, submitQuery } = useQuery()
+  const {
+    matchedIds,
+    filters,
+    methodUsed,
+    loading: queryLoading,
+    error: queryError,
+    submitQuery,
+    loadFilters,
+  } = useQuery()
+  const {
+    projects,
+    loading: projectsLoading,
+    currentUsername,
+    setCurrentUsername,
+    activeProjectId,
+    saveProject,
+    loadProject,
+    deleteProject,
+  } = useProjects()
   const [selectedBuilding, setSelectedBuilding] = useState(null)
 
   const handleBuildingClick = useCallback((building) => {
@@ -18,6 +38,20 @@ function App() {
   const handleClosePanel = useCallback(() => {
     setSelectedBuilding(null)
   }, [])
+
+  /** Saves the current query snapshot (filters + matchedIds) as a named project. */
+  const handleSaveProject = useCallback((name) => {
+    saveProject(name, { filters, matchedIds })
+  }, [saveProject, filters, matchedIds])
+
+  /**
+   * Loads a saved project: marks it active in useProjects and re-applies its
+   * filter snapshot to useQuery so buildings re-highlight immediately.
+   */
+  const handleLoadProject = useCallback((project) => {
+    loadProject(project)
+    loadFilters(project.filters)
+  }, [loadProject, loadFilters])
 
   if (loading) return <LoadingScreen />
 
@@ -41,6 +75,19 @@ function App() {
       <BuildingInfoPanel
         building={selectedBuilding}
         onClose={handleClosePanel}
+      />
+
+      {/* Project panel — bottom left */}
+      <ProjectPanel
+        projects={projects}
+        loading={projectsLoading}
+        currentUsername={currentUsername}
+        setCurrentUsername={setCurrentUsername}
+        activeProjectId={activeProjectId}
+        hasActiveQuery={matchedIds.length > 0}
+        onSave={handleSaveProject}
+        onLoad={handleLoadProject}
+        onDelete={deleteProject}
       />
 
       {/* Query bar — bottom center */}
