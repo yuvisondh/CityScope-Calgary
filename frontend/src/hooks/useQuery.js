@@ -14,7 +14,16 @@ import { postQuery } from '../api/query'
  * useQuery — manages LLM query submission and result state.
  * Does NOT fire on mount; App drives submission via the returned `submitQuery`.
  *
- * @returns {{ state: QueryState, submitQuery: (text: string) => Promise<void>, clearQuery: () => void }}
+ * @returns {{
+ *   matchedIds: string[],
+ *   filters: Object[],
+ *   methodUsed: string|null,
+ *   loading: boolean,
+ *   error: string|null,
+ *   submitQuery: (text: string) => Promise<void>,
+ *   clearQuery: () => void,
+ *   loadFilters: (snapshot: { filters: Object[], matchedIds: string[] }) => void,
+ * }}
  */
 export function useQuery() {
   const [matchedIds, setMatchedIds] = useState([])
@@ -54,6 +63,27 @@ export function useQuery() {
     setError(null)
   }, [])
 
+  /**
+   * loadFilters — applies a previously saved filter snapshot directly to state,
+   * bypassing the LLM entirely.
+   *
+   * This method exists separately from submitQuery because submitQuery must
+   * round-trip to the backend to parse a text query and derive matched_ids.
+   * When restoring a saved project the filter objects AND the matched building
+   * IDs are already known (stored together in the project's `filters` blob),
+   * so we can skip the network call and apply them synchronously. The snapshot
+   * shape mirrors exactly what submitQuery persists after a successful call.
+   *
+   * @param {{ filters: Object[], matchedIds: string[] }} snapshot - The filter
+   *   snapshot produced by a previous submitQuery call and saved with the project.
+   */
+  const loadFilters = useCallback((snapshot) => {
+    setMatchedIds(snapshot.matchedIds ?? [])
+    setFilters(snapshot.filters      ?? [])
+    setMethodUsed('saved')
+    setError(null)
+  }, [])  // no deps — only touches local state setters
+
   return {
     matchedIds,
     filters,
@@ -62,5 +92,6 @@ export function useQuery() {
     error,
     submitQuery,
     clearQuery,
+    loadFilters,
   }
 }
