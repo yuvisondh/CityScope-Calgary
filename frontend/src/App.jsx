@@ -71,6 +71,7 @@ function App() {
         selectedBuildingId={selectedBuilding?.id ?? null}
         matchedIds={matchedIds}
         onBuildingClick={handleBuildingClick}
+        onDeselect={handleClosePanel}
       />
 
       <BuildingInfoPanel

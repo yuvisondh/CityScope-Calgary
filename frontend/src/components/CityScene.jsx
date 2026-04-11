@@ -40,7 +40,11 @@ const FILL_LIGHT_INTENSITY = 0.25
 /** Ground plane — flat dark surface beneath the city. */
 function Ground() {
   return (
-    <mesh rotation={GROUND_ROT} receiveShadow>
+    <mesh rotation={GROUND_ROT} receiveShadow raycast={() => null}>
+      {/* raycast={() => null} makes the ground invisible to the raycaster so
+          clicks on it pass through to Canvas.onPointerMissed, triggering
+          deselection. Without this, the ground mesh would swallow clicks and
+          onPointerMissed would never fire for ground-level clicks. */}
       <planeGeometry args={GROUND_ARGS} />
       <meshStandardMaterial color={GROUND_COLOR} />
     </mesh>
@@ -69,14 +73,21 @@ function SurveyGrid() {
  * CityScene — Three.js canvas containing the 3D city, ground plane, grid,
  * lighting, and orbit controls.
  *
- * @param {{ buildings: Object[], selectedBuildingId: string|null, matchedIds: string[], onBuildingClick: Function }} props
+ * Deselection uses Canvas's onPointerMissed rather than a document-level click
+ * listener. onPointerMissed fires only when a click hits the canvas but doesn't
+ * intersect any raycast-enabled mesh — so clicks on HTML overlay panels
+ * (BuildingInfoPanel, QueryInput, etc.) are ignored automatically because they
+ * intercept in HTML space before reaching the canvas. The ground mesh uses
+ * raycast={() => null} so it doesn't block this.
+ *
+ * @param {{ buildings: Object[], selectedBuildingId: string|null, matchedIds: string[], onBuildingClick: Function, onDeselect: Function }} props
  */
-export default function CityScene({ buildings, selectedBuildingId, matchedIds, onBuildingClick }) {
+export default function CityScene({ buildings, selectedBuildingId, matchedIds, onBuildingClick, onDeselect }) {
   // Set for O(1) highlight lookup (js-index-maps) — recomputed only when matchedIds changes
   const matchedSet = useMemo(() => new Set(matchedIds), [matchedIds])
 
   return (
-    <Canvas camera={CAMERA} shadows style={{ background: SCENE_BG }}>
+    <Canvas camera={CAMERA} shadows style={{ background: SCENE_BG }} onPointerMissed={onDeselect}>
       {/* Three-point lighting: warm ambient + warm directional primary + cool fill */}
       <ambientLight color={AMBIENT_COLOR} intensity={AMBIENT_INTENSITY} />
       <directionalLight
