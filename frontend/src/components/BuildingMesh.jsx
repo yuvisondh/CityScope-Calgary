@@ -1,6 +1,7 @@
 import { memo, useMemo, useState, useCallback } from 'react'
 import * as THREE from 'three'
 import { latLonToXZ } from '../utils/geo'
+import { zoningToBucket } from '../utils/zoning'
 
 // ─── Geometry constants ───────────────────────────────────────────────────────
 // Rotation maps ExtrudeGeometry's +Z extrusion → world +Y (up)
@@ -8,21 +9,10 @@ const GROUP_ROT = [-Math.PI / 2, 0, 0]
 const MIN_HEIGHT = 3  // metres — prevents flat footprints from being invisible
 
 // ─── Color tokens (mirror CSS custom properties from index.css) ───────────────
-// These are duplicated here because Three.js materials accept hex strings, not
-// CSS var() references. Every value traces back to DESIGN_SPEC.md Section 2.
-
-// Selection / highlight — strict priority order per spec
+// Selection / highlight — strict priority order per spec Section 2.
+// Duplicated here because Three.js materials need hex strings, not CSS var().
 const SELECTED_COLOR  = '#c8102e'  // var(--accent-flag)
 const HIGHLIGHT_COLOR = '#a00d24'  // var(--highlight-color), slightly desaturated
-
-// Zoning bucket base colors — revised for hue separation (sand, green, blue,
-// rose, grey). Mirrors CSS tokens in index.css; duplicated here because Three.js
-// materials accept hex strings, not CSS var() references.
-const ZONING_COMMERCIAL  = '#c4a478'  // var(--zoning-commercial) — warm sand
-const ZONING_MIXED       = '#8b9e8b'  // var(--zoning-mixed)       — sage green
-const ZONING_RESIDENTIAL = '#7895a3'  // var(--zoning-residential) — dusty blue
-const ZONING_INDUSTRIAL  = '#a08070'  // var(--zoning-industrial)  — clay rose
-const ZONING_OTHER       = '#8a8580'  // var(--zoning-other)       — warm concrete
 
 // ─── Material properties (DESIGN_SPEC.md Section 5) ───────────────────────────
 const ROUGHNESS = 0.85   // matte, no plasticky shine
@@ -34,42 +24,6 @@ const METALNESS = 0.0
 // emissiveIntensity bump using the building's own bucket color, which gives
 // a "lift" effect without affecting transparency or scene clarity.
 const HOVER_EMISSIVE_INTENSITY = 0.08
-
-// ─── Zoning → bucket color mapping ───────────────────────────────────────────
-
-/**
- * Maps a Calgary zoning code to its bucket color.
- * Uses prefix matching against the five buckets defined in DESIGN_SPEC.md
- * Section 2 ("Building Materials by Zoning"). Codes are matched
- * case-insensitively; unrecognised codes fall through to the "Other" bucket.
- *
- * @param {string|null} zoning - Calgary zoning code (e.g. "CC-X", "RC-G")
- * @returns {string} hex color for the zoning bucket
- */
-function zoningToBucket(zoning) {
-  if (!zoning) return ZONING_OTHER
-
-  const code = zoning.toUpperCase().trim()
-
-  // Commercial Core — CC-*, C-COR*, C-C2
-  if (code.startsWith('CC-') || code.startsWith('C-COR') || code === 'C-C2') {
-    return ZONING_COMMERCIAL
-  }
-  // Mixed Use — CR20, CR-20, M-CG, M-X*, MU-*
-  if (code.startsWith('CR') || code.startsWith('M-') || code.startsWith('MU')) {
-    return ZONING_MIXED
-  }
-  // Residential — RC-G, R-*
-  if (code.startsWith('RC-') || code.startsWith('R-')) {
-    return ZONING_RESIDENTIAL
-  }
-  // Industrial / Special — I-*, S-*, DC
-  if (code.startsWith('I-') || code.startsWith('S-') || code === 'DC') {
-    return ZONING_INDUSTRIAL
-  }
-
-  return ZONING_OTHER
-}
 
 // ─── Geometry helper ──────────────────────────────────────────────────────────
 
@@ -110,7 +64,7 @@ function BuildingMesh({ building, isSelected, isHighlighted, onClick }) {
     [shape, height_m],
   )
 
-  const bucketColor = useMemo(() => zoningToBucket(zoning), [zoning])
+  const bucketColor = useMemo(() => zoningToBucket(zoning).color, [zoning])
 
   // Resolve display color by priority: selected > highlighted > bucket
   const displayColor = isSelected
