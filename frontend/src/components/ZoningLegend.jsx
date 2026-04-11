@@ -1,21 +1,16 @@
 import { memo } from 'react'
+import { BUCKETS } from '../utils/zoning'
 
 // ─── Legend entries ────────────────────────────────────────────────────────────
-// Bucket colors reference DESIGN_SPEC.md Section 2 zoning tokens.
-// Kept as a static array — bucket names and colors never change at runtime.
-const BUCKETS = [
-  { label: 'Commercial core', color: 'var(--zoning-commercial)' },
-  { label: 'Mixed use',       color: 'var(--zoning-mixed)' },
-  { label: 'Residential',     color: 'var(--zoning-residential)' },
-  { label: 'Industrial',      color: 'var(--zoning-industrial)' },
-  { label: 'Other',           color: 'var(--zoning-other)' },
-  { label: 'Selected / matched', color: 'var(--accent-flag)' },
-]
+// Rendered directly from the shared BUCKETS array (utils/zoning.js).
+// The "Other" bucket is hidden from the legend when no buildings use it —
+// keeps the visual clean for the Beltline dataset where all codes are known.
+// The selection accent row is appended separately since it's not a zoning bucket.
 
 // ─── Dimensions ───────────────────────────────────────────────────────────────
-const CHIP_SIZE   = 10  // px — small color squares, printed-map-key style
-const ROW_GAP     = 8
-const CHIP_GAP    = 8   // gap between chip and label
+const CHIP_SIZE = 10   // px — small color squares, printed-map-key style
+const ROW_GAP   = 8
+const CHIP_GAP  = 8    // gap between chip and label
 
 // ─── Style objects ────────────────────────────────────────────────────────────
 
@@ -70,9 +65,9 @@ const LABEL_STYLE = {
 // ─── Sub-component ────────────────────────────────────────────────────────────
 
 /** Single row: color chip + bucket label. */
-function LegendRow({ label, color }) {
+function LegendRow({ label, color, description }) {
   return (
-    <li style={ROW_STYLE}>
+    <li style={ROW_STYLE} title={description}>
       <span
         style={{
           width: CHIP_SIZE,
@@ -90,9 +85,12 @@ function LegendRow({ label, color }) {
 // ─── Main component ───────────────────────────────────────────────────────────
 
 /**
- * ZoningLegend — small printed-map-key showing the five zoning bucket colors
- * plus the selection/query accent. Positioned top-right; hides when the
+ * ZoningLegend — small printed-map-key showing the data-driven zoning bucket
+ * colors plus the selection/query accent. Positioned top-right; hides when the
  * building info panel is visible to avoid stacking two panels on the right.
+ *
+ * Reads bucket definitions from the shared BUCKETS array (utils/zoning.js) so
+ * legend and building materials always stay in sync.
  *
  * @param {{ visible: boolean }} props
  */
@@ -103,9 +101,16 @@ function ZoningLegend({ visible }) {
     <div style={PANEL_STYLE} role="img" aria-label="Zoning color legend">
       <p style={TITLE_STYLE}>Zoning</p>
       <ul style={LIST_STYLE}>
-        {BUCKETS.map(({ label, color }) => (
-          <LegendRow key={label} label={label} color={color} />
-        ))}
+        {BUCKETS
+          .filter(b => b.id !== 'other')
+          .map(({ id, label, color, description }) => (
+            <LegendRow key={id} label={label} color={color} description={description} />
+          ))}
+        <LegendRow
+          label="Selected / matched"
+          color="var(--accent-flag)"
+          description="Buildings selected by click or matched by query"
+        />
       </ul>
     </div>
   )
