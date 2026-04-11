@@ -1,21 +1,9 @@
 import { memo, useState, useCallback } from 'react'
 
-// ─── Color constants (matching BuildingInfoPanel) ──────────────────────────────
-const PANEL_BG       = 'rgba(13,17,23,0.92)'
-const PANEL_TEXT     = '#e6edf3'
-const PANEL_MUTED    = '#8b949e'
-const DIVIDER_COLOR  = 'rgba(255,255,255,0.08)'
-const BTN_BG         = 'rgba(255,255,255,0.08)'
-const BTN_DISABLED_BG = 'rgba(255,255,255,0.03)'
-const INPUT_BG       = 'rgba(255,255,255,0.06)'
-const ACTIVE_ROW_BG  = 'rgba(255,155,50,0.12)'
-const DELETE_COLOR   = '#ff6b6b'
-const DELETE_BG      = 'rgba(255,80,80,0.10)'
+// ─── Dimensions ───────────────────────────────────────────────────────────────
+const PANEL_WIDTH = 280
 
-// ─── Dimensions (no magic numbers) ────────────────────────────────────────────
-const PANEL_WIDTH = 260
-
-// ─── Style objects ─────────────────────────────────────────────────────────────
+// ─── Style objects — all colors via CSS custom properties (DESIGN_SPEC.md) ────
 
 const WRAPPER_STYLE = {
   position: 'absolute',
@@ -23,27 +11,31 @@ const WRAPPER_STYLE = {
   left: 16,
   width: PANEL_WIDTH,
   zIndex: 10,
-  fontFamily: 'sans-serif',
+  fontFamily: 'var(--sans)',
 }
 
 const BODY_STYLE = {
-  background: PANEL_BG,
-  color: PANEL_TEXT,
-  border: `1px solid ${DIVIDER_COLOR}`,
-  borderRadius: '8px 8px 0 0',
-  padding: '14px 14px 10px',
+  background: 'var(--bg-panel)',
+  color: 'var(--text-primary)',
+  border: 'var(--border-panel)',
+  borderRadius: 'calc(var(--radius-panel)) calc(var(--radius-panel)) 0 0',
+  boxShadow: 'var(--shadow-panel)',
+  padding: '12px 16px 8px',
 }
 
 const TOGGLE_BTN_STYLE = {
   width: '100%',
-  background: PANEL_BG,
-  color: PANEL_TEXT,
-  border: `1px solid ${DIVIDER_COLOR}`,
-  borderRadius: 8,
+  background: 'var(--bg-panel)',
+  color: 'var(--text-primary)',
+  border: 'var(--border-panel)',
+  borderRadius: 'var(--radius-panel)',
+  boxShadow: 'var(--shadow-panel)',
   padding: '8px 12px',
   cursor: 'pointer',
+  // --text-body: 13px / 400 / 1.5, but weight bumped for toggle affordance
   fontSize: 13,
   fontWeight: 600,
+  fontFamily: 'var(--sans)',
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
@@ -52,50 +44,60 @@ const TOGGLE_BTN_STYLE = {
 
 const TOGGLE_BTN_OPEN_STYLE = {
   ...TOGGLE_BTN_STYLE,
-  borderRadius: '0 0 8px 8px',
+  borderRadius: '0 0 calc(var(--radius-panel)) calc(var(--radius-panel))',
   borderTop: 'none',
 }
 
+// --text-label: 11px / 500 / 1.4, uppercase, letter-spacing 0.04em
 const LABEL_STYLE = {
   display: 'block',
   fontSize: 11,
-  color: PANEL_MUTED,
+  color: 'var(--text-secondary)',
   marginBottom: 4,
   fontWeight: 500,
   textTransform: 'uppercase',
   letterSpacing: '0.04em',
+  fontFamily: 'var(--sans)',
 }
 
 const INPUT_STYLE = {
   width: '100%',
-  background: INPUT_BG,
-  border: `1px solid ${DIVIDER_COLOR}`,
-  borderRadius: 6,
-  color: PANEL_TEXT,
+  background: 'var(--bg-panel-hover)',
+  border: 'var(--border-panel)',
+  borderRadius: 'var(--radius-panel)',
+  color: 'var(--text-primary)',
   padding: '6px 8px',
+  // --text-body: 13px / 400 / 1.5
   fontSize: 13,
+  fontWeight: 400,
+  fontFamily: 'var(--sans)',
   boxSizing: 'border-box',
   outline: 'none',
 }
 
 const DIVIDER_STYLE = {
   border: 'none',
-  borderTop: `1px solid ${DIVIDER_COLOR}`,
+  borderTop: 'var(--border-panel)',
   margin: '10px 0',
 }
 
 const SECTION_TITLE_STYLE = {
   fontSize: 11,
-  color: PANEL_MUTED,
+  color: 'var(--text-secondary)',
   fontWeight: 500,
   textTransform: 'uppercase',
   letterSpacing: '0.04em',
-  margin: '0 0 6px',
+  margin: '0 0 8px',
+  fontFamily: 'var(--sans)',
 }
 
+// --text-body: 13px / 400 / 1.5
 const PROJECT_NAME_STYLE = {
   fontSize: 13,
-  color: PANEL_TEXT,
+  fontWeight: 400,
+  lineHeight: 1.5,
+  color: 'var(--text-primary)',
+  fontFamily: 'var(--sans)',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
@@ -104,9 +106,9 @@ const PROJECT_NAME_STYLE = {
 }
 
 const DELETE_BTN_STYLE = {
-  background: DELETE_BG,
+  background: 'var(--accent-flag-muted)',
   border: 'none',
-  color: DELETE_COLOR,
+  color: 'var(--accent-flag)',
   width: 22,
   height: 22,
   borderRadius: 4,
@@ -117,19 +119,23 @@ const DELETE_BTN_STYLE = {
   alignItems: 'center',
   justifyContent: 'center',
   flexShrink: 0,
-  marginLeft: 6,
+  marginLeft: 8,
   padding: 0,
 }
 
+// --text-caption: 10px / 400 / 1.4
 const EMPTY_STYLE = {
-  color: PANEL_MUTED,
-  fontSize: 12,
+  color: 'var(--text-muted)',
+  fontSize: 10,
+  fontWeight: 400,
+  lineHeight: 1.4,
   textAlign: 'center',
-  padding: '8px 0 2px',
+  padding: '8px 0 4px',
   margin: 0,
+  fontFamily: 'var(--sans)',
 }
 
-// ─── Helpers ───────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /**
  * Returns inline style for a project row, highlighting the active project.
@@ -141,10 +147,10 @@ function projectRowStyle(isActive) {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: '7px 8px',
-    borderRadius: 6,
+    padding: '6px 8px',
+    borderRadius: 4,
     cursor: 'pointer',
-    background: isActive ? ACTIVE_ROW_BG : 'transparent',
+    background: isActive ? 'var(--accent-flag-muted)' : 'transparent',
     marginBottom: 2,
   }
 }
@@ -158,19 +164,20 @@ function saveBtnStyle(disabled) {
   return {
     width: '100%',
     marginTop: 10,
-    background: disabled ? BTN_DISABLED_BG : BTN_BG,
-    color: disabled ? PANEL_MUTED : PANEL_TEXT,
-    border: `1px solid ${DIVIDER_COLOR}`,
-    borderRadius: 6,
+    background: disabled ? 'var(--bg-panel-hover)' : 'var(--accent-flag)',
+    color: disabled ? 'var(--text-muted)' : 'var(--text-primary)',
+    border: 'var(--border-panel)',
+    borderRadius: 'var(--radius-panel)',
     padding: '7px 10px',
     cursor: disabled ? 'not-allowed' : 'pointer',
     fontSize: 13,
     fontWeight: 500,
+    fontFamily: 'var(--sans)',
     boxSizing: 'border-box',
   }
 }
 
-// ─── Sub-components ────────────────────────────────────────────────────────────
+// ─── Sub-components ───────────────────────────────────────────────────────────
 
 /**
  * Single row in the saved-projects list.
@@ -202,7 +209,7 @@ function ProjectRow({ project, isActive, onLoad, onDelete }) {
   )
 }
 
-// ─── Main component ────────────────────────────────────────────────────────────
+// ─── Main component ───────────────────────────────────────────────────────────
 
 /**
  * ProjectPanel — collapsible bottom-left panel for saving and loading LLM query
@@ -278,12 +285,12 @@ function ProjectPanel({
 
           <hr style={DIVIDER_STYLE} />
 
-          <p style={SECTION_TITLE_STYLE}>Saved Projects</p>
+          <p style={SECTION_TITLE_STYLE}>Saved projects</p>
 
           {loading && <p style={EMPTY_STYLE}>Loading…</p>}
 
           {!loading && projects.length === 0 && (
-            <p style={EMPTY_STYLE}>No saved projects yet.</p>
+            <p style={EMPTY_STYLE}>No saved projects yet</p>
           )}
 
           {!loading && projects.map(project => (

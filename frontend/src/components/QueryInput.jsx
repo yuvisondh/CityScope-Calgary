@@ -1,18 +1,7 @@
 import { useState, memo } from 'react'
 
-// ─── Color constants ───────────────────────────────────────────────────────────
-const INPUT_BG       = 'rgba(13,17,23,0.90)'
-const INPUT_TEXT     = '#e6edf3'
-const INPUT_BORDER   = 'rgba(255,255,255,0.12)'
-const PLACEHOLDER    = '#8b949e'
-const BTN_BG         = '#2d65c8'
-const BTN_BG_LOADING = '#1a3d7a'
-const BTN_TEXT       = '#ffffff'
-const BADGE_LLM      = '#10b981'
-const BADGE_FALLBACK = '#f59e0b'
-const ERROR_TEXT     = '#f87171'
+// ─── Style objects — all colors via CSS custom properties (DESIGN_SPEC.md) ────
 
-// ─── Styles ────────────────────────────────────────────────────────────────────
 const WRAPPER_STYLE = {
   display: 'flex',
   flexDirection: 'column',
@@ -29,31 +18,43 @@ const FORM_STYLE = {
 
 const INPUT_STYLE = {
   flex: 1,
-  padding: '10px 14px',
-  background: INPUT_BG,
-  border: `1px solid ${INPUT_BORDER}`,
-  borderRadius: 8,
-  color: INPUT_TEXT,
-  fontSize: 14,
+  padding: '10px 12px',
+  background: 'var(--bg-panel)',
+  border: 'var(--border-panel)',
+  borderRadius: 'var(--radius-panel)',
+  color: 'var(--text-primary)',
+  fontSize: 13,
+  fontWeight: 400,
+  lineHeight: 1.5,
   outline: 'none',
-  fontFamily: 'sans-serif',
+  fontFamily: 'var(--sans)',
 }
 
+// --text-caption: 10px / 400 / 1.4 — used for badge and method text
 const BADGE_STYLE_BASE = {
-  fontSize: 11,
-  fontWeight: 600,
-  fontFamily: 'sans-serif',
+  fontSize: 10,
+  fontWeight: 500,
+  fontFamily: 'var(--mono)',
   padding: '2px 8px',
   borderRadius: 99,
-  letterSpacing: 0.3,
+  letterSpacing: '0.02em',
 }
 
 const META_STYLE = {
   display: 'flex',
   gap: 8,
   alignItems: 'center',
-  fontSize: 11,
-  fontFamily: 'sans-serif',
+  fontSize: 10,
+  fontFamily: 'var(--sans)',
+}
+
+// ─── Method badge display mapping (DESIGN_SPEC.md Section 7) ──────────────────
+const METHOD_LABELS = {
+  llm:         'via AI',
+  fallback:    'via pattern match',
+  superlative: 'via superlative',
+  saved:       'via saved project',
+  none:        'no match',
 }
 
 /**
@@ -71,17 +72,21 @@ function QueryInput({ onSubmit, loading, error, methodUsed }) {
     onSubmit(text)
   }
 
+  // Submit button — accent-flag is the one place the accent appears in UI chrome
   const btnStyle = {
-    padding: '10px 18px',
-    background: loading ? BTN_BG_LOADING : BTN_BG,
-    color: BTN_TEXT,
+    padding: '10px 16px',
+    background: loading ? 'var(--accent-flag-muted)' : 'var(--accent-flag)',
+    color: 'var(--text-primary)',
     border: 'none',
-    borderRadius: 8,
-    fontSize: 14,
-    fontFamily: 'sans-serif',
+    borderRadius: 'var(--radius-panel)',
+    fontSize: 13,
+    fontWeight: 500,
+    fontFamily: 'var(--sans)',
     cursor: loading ? 'not-allowed' : 'pointer',
     whiteSpace: 'nowrap',
   }
+
+  const badgeLabel = METHOD_LABELS[methodUsed] ?? methodUsed
 
   return (
     <div style={WRAPPER_STYLE}>
@@ -90,7 +95,7 @@ function QueryInput({ onSubmit, loading, error, methodUsed }) {
           style={INPUT_STYLE}
           value={text}
           onChange={e => setText(e.target.value)}
-          placeholder="e.g. show buildings over 100 feet"
+          placeholder='Try "show buildings over 100 feet" or "show me the tallest"'
           disabled={loading}
           aria-label="Building query"
         />
@@ -100,15 +105,15 @@ function QueryInput({ onSubmit, loading, error, methodUsed }) {
       </form>
 
       {error !== null ? (
-        <span style={{ ...META_STYLE, color: ERROR_TEXT }}>{error}</span>
+        <span style={{ ...META_STYLE, color: 'var(--accent-flag)' }}>{error}</span>
       ) : methodUsed !== null ? (
         <div style={META_STYLE}>
           <span style={{
             ...BADGE_STYLE_BASE,
-            background: methodUsed === 'llm' ? BADGE_LLM : BADGE_FALLBACK,
-            color: '#fff',
+            background: 'var(--accent-flag-muted)',
+            color: 'var(--text-secondary)',
           }}>
-            {methodUsed === 'llm' ? 'via LLM' : 'via regex fallback'}
+            {badgeLabel}
           </span>
         </div>
       ) : null}
