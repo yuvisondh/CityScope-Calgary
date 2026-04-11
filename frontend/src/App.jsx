@@ -1,5 +1,6 @@
 import { useBuildings } from './hooks/useBuildings'
 import LoadingScreen from './components/LoadingScreen'
+import CityScene from './components/CityScene'
 
 function App() {
   const { buildings, loading, error } = useBuildings()
@@ -15,8 +16,22 @@ function App() {
   }
 
   return (
-    <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
-      Loaded {buildings.length} buildings
+    <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
+      <CityScene />
+      <div style={{
+        position: 'absolute',
+        top: 16,
+        left: 16,
+        background: 'rgba(0,0,0,0.5)',
+        color: '#fff',
+        padding: '6px 12px',
+        borderRadius: 6,
+        fontFamily: 'sans-serif',
+        fontSize: 13,
+        pointerEvents: 'none',
+      }}>
+        {buildings.length} buildings loaded
+      </div>
     </div>
   )
 }
