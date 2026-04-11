@@ -1,11 +1,13 @@
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
+import BuildingMesh from './BuildingMesh'
 
 // Hoisted constants — no new arrays on re-render (rendering-hoist-jsx)
-const CAMERA = { position: [0, 80, 160], fov: 50, near: 0.1, far: 5000 }
+// Camera pulled back to show the full ~846m × 518m Beltline dataset
+const CAMERA = { position: [0, 500, 750], fov: 55, near: 0.1, far: 5000 }
 const GROUND_ARGS = [2000, 2000]
 const GROUND_ROT = [-Math.PI / 2, 0, 0]
-const DIR_LIGHT_POS = [100, 200, 100]
+const DIR_LIGHT_POS = [200, 400, 200]
 
 function Ground() {
   return (
@@ -16,7 +18,7 @@ function Ground() {
   )
 }
 
-export default function CityScene() {
+export default function CityScene({ buildings }) {
   return (
     <Canvas camera={CAMERA} shadows style={{ background: '#0d1117' }}>
       <ambientLight intensity={0.35} />
@@ -27,11 +29,14 @@ export default function CityScene() {
         shadow-mapSize={[2048, 2048]}
       />
       <Ground />
+      {buildings.map(building => (
+        <BuildingMesh key={building.id} building={building} />
+      ))}
       <OrbitControls
         makeDefault
         maxPolarAngle={Math.PI / 2.1}
         minDistance={20}
-        maxDistance={800}
+        maxDistance={2000}
       />
     </Canvas>
   )

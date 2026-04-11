@@ -17,7 +17,7 @@ function App() {
 
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
-      <CityScene />
+      <CityScene buildings={buildings} />
       <div style={{
         position: 'absolute',
         top: 16,
