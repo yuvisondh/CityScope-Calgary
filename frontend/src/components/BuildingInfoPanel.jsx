@@ -1,26 +1,26 @@
 import { memo } from 'react'
 
-// ─── Color constants ───────────────────────────────────────────────────────────
-const PANEL_BG     = 'rgba(13,17,23,0.92)'
-const PANEL_TEXT   = '#e6edf3'
-const PANEL_MUTED  = '#8b949e'
-const DIVIDER      = 'rgba(255,255,255,0.08)'
-const CLOSE_BG     = 'rgba(255,255,255,0.10)'
+// ─── Style objects — all colors via CSS custom properties (DESIGN_SPEC.md) ────
+// Panel visual treatment: Section 4. Type scale: Section 3. Colors: Section 2.
 
-// ─── Style objects ─────────────────────────────────────────────────────────────
 const PANEL_STYLE = {
   position: 'absolute',
-  top: 0,
-  right: 0,
-  width: 300,
-  height: '100%',
-  background: PANEL_BG,
-  color: PANEL_TEXT,
-  padding: '20px 18px',
-  fontFamily: 'sans-serif',
+  top: 16,
+  right: 16,
+  width: 320,
+  maxHeight: 'calc(100vh - 32px)',
+  background: 'var(--bg-panel)',
+  color: 'var(--text-primary)',
+  padding: 'var(--panel-padding)',
+  fontFamily: 'var(--sans)',
   overflowY: 'auto',
   boxSizing: 'border-box',
-  borderLeft: `1px solid ${DIVIDER}`,
+  border: 'var(--border-panel)',
+  borderRadius: 'var(--radius-panel)',
+  boxShadow: 'var(--shadow-panel)',
+  // Opacity fade entrance — Section 8 wins over Section 6: no positional slide,
+  // the tool snaps. Simple opacity transition for a soft appear.
+  transition: 'opacity 300ms ease-out',
 }
 
 const HEADER_STYLE = {
@@ -31,22 +31,24 @@ const HEADER_STYLE = {
   marginBottom: 12,
 }
 
+// --text-display: 14px / 600 / 1.3
 const TITLE_STYLE = {
   margin: 0,
-  fontSize: 15,
+  fontSize: 14,
   fontWeight: 600,
-  lineHeight: 1.4,
-  color: PANEL_TEXT,
+  lineHeight: 1.3,
+  color: 'var(--text-primary)',
+  fontFamily: 'var(--sans)',
 }
 
 const CLOSE_BTN_STYLE = {
   flexShrink: 0,
-  background: CLOSE_BG,
+  background: 'var(--bg-panel-hover)',
   border: 'none',
-  color: PANEL_TEXT,
+  color: 'var(--text-primary)',
   width: 28,
   height: 28,
-  borderRadius: 6,
+  borderRadius: 4,
   cursor: 'pointer',
   fontSize: 16,
   lineHeight: '28px',
@@ -56,7 +58,7 @@ const CLOSE_BTN_STYLE = {
 
 const DIVIDER_STYLE = {
   border: 'none',
-  borderTop: `1px solid ${DIVIDER}`,
+  borderTop: 'var(--border-panel)',
   margin: '12px 0',
 }
 
@@ -66,17 +68,40 @@ const DL_STYLE = {
   display: 'grid',
   gridTemplateColumns: 'auto 1fr',
   columnGap: 16,
-  rowGap: 10,
+  rowGap: 12,
 }
 
-const DT_STYLE = { color: PANEL_MUTED, fontSize: 12, fontWeight: 500, margin: 0 }
-const DD_STYLE = { color: PANEL_TEXT,  fontSize: 13, margin: 0, textAlign: 'right' }
+// --text-label: 11px / 500 / 1.4, uppercase, letter-spacing 0.04em
+const DT_STYLE = {
+  color: 'var(--text-secondary)',
+  fontSize: 11,
+  fontWeight: 500,
+  lineHeight: 1.4,
+  textTransform: 'uppercase',
+  letterSpacing: '0.04em',
+  margin: 0,
+  fontFamily: 'var(--sans)',
+}
 
+// --text-data: 13px / 500 / 1.4, Plex Mono for numerical values
+const DD_STYLE = {
+  color: 'var(--text-mono)',
+  fontSize: 13,
+  fontWeight: 500,
+  lineHeight: 1.4,
+  margin: 0,
+  textAlign: 'right',
+  fontFamily: 'var(--mono)',
+}
+
+// --text-caption: 10px / 400 / 1.4
 const FOOTNOTE_STYLE = {
   marginTop: 20,
   fontSize: 10,
-  color: PANEL_MUTED,
-  lineHeight: 1.5,
+  fontWeight: 400,
+  lineHeight: 1.4,
+  color: 'var(--text-muted)',
+  fontFamily: 'var(--sans)',
 }
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
