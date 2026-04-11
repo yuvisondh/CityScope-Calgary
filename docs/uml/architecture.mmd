@@ -1,40 +1,40 @@
 graph TB
-    subgraph "Data Ingestion (one-time)"
-        A[scripts/fetch_data.py] -->|SODA API| B[Calgary Open Data]
-        B -->|Building footprints GeoJSON| A
-        B -->|Property assessments CSV| A
-        A -->|Join by address| C[data/buildings.json<br/>125 Beltline buildings]
+    subgraph ingestion["Data Ingestion (one-time)"]
+        A["scripts/fetch_data.py"] -->|SODA API| B["Calgary Open Data"]
+        B -->|"Building footprints GeoJSON"| A
+        B -->|"Property assessments CSV"| A
+        A -->|"Join by address"| C["data/buildings.json\n125 Beltline buildings"]
     end
 
-    subgraph "Backend (Flask + SQLite)"
-        D[app.py] -->|loads on startup| C
-        D --> E[routes/buildings.py<br/>GET /api/buildings]
-        D --> F[routes/query.py<br/>POST /api/query]
-        D --> G[routes/projects.py<br/>CRUD /api/projects]
-        F --> H[llm.py]
-        H -->|Superlative intercept| S[Superlative preprocessor<br/>top-N ranking]
-        H -->|Primary| I[Groq API<br/>llama-3.3-70b-versatile]
-        H -->|Fallback| J[Regex parser]
-        G --> K[(SQLite DB<br/>projects table)]
+    subgraph backend["Backend: Flask + SQLite"]
+        D["app.py"] -->|"loads on startup"| C
+        D --> E["routes/buildings.py\nGET /api/buildings"]
+        D --> F["routes/query.py\nPOST /api/query"]
+        D --> G["routes/projects.py\nCRUD /api/projects"]
+        F --> H["llm.py"]
+        H -->|"1. Superlative intercept"| S["Superlative preprocessor\ntop-N ranking"]
+        H -->|"2. Primary"| I["Groq API\nllama-3.3-70b-versatile"]
+        H -->|"3. Fallback"| J["Regex parser"]
+        G --> K[("SQLite DB\nprojects table")]
     end
 
-    subgraph "Frontend (React + Three.js)"
-        L[App.jsx] --> M[CityScene.jsx<br/>@react-three/fiber Canvas]
-        M --> N[BuildingMesh.jsx<br/>ExtrudeGeometry per building]
-        M --> Z[ZoningLegend.jsx<br/>data-driven bucket legend]
-        L --> O[QueryInput.jsx<br/>natural language search bar]
-        L --> P[BuildingInfoPanel.jsx<br/>click-selected building details]
-        L --> Q[ProjectPanel.jsx<br/>save / load query snapshots]
-        N --> Y[utils/zoning.js<br/>BUCKETS + zoningToBucket]
+    subgraph frontend["Frontend: React + Three.js"]
+        L["App.jsx"] --> M["CityScene.jsx\nreact-three-fiber Canvas"]
+        M --> N["BuildingMesh.jsx\nExtrudeGeometry per building"]
+        M --> Z["ZoningLegend.jsx"]
+        L --> O["QueryInput.jsx"]
+        L --> P["BuildingInfoPanel.jsx"]
+        L --> Q["ProjectPanel.jsx"]
+        N --> Y["utils/zoning.js\nBUCKETS + zoningToBucket"]
         Z --> Y
     end
 
-    subgraph "React Hooks"
-        L --> HB[useBuildings<br/>fetch + cache buildings]
-        L --> HQ[useQuery<br/>submitQuery / loadFilters]
-        L --> HP[useProjects<br/>CRUD + localStorage username]
+    subgraph hooks["React Hooks"]
+        L --> HB["useBuildings\nfetch + cache buildings"]
+        L --> HQ["useQuery\nsubmitQuery / loadFilters"]
+        L --> HP["useProjects\nCRUD + localStorage username"]
     end
 
-    E -->|buildings JSON| HB
-    F -->|matched_ids + filters + method| HQ
-    G -->|project list| HP
+    E -->|"buildings JSON"| HB
+    F -->|"matched_ids + filters + method"| HQ
+    G -->|"project list"| HP
