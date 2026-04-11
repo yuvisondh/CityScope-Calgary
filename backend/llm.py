@@ -53,11 +53,67 @@ def _build_prompt_body(user_query):
     )
 
 
+# ─── Superlative preprocessor ─────────────────────────────────────────────────
+# LLMs cannot rank — "tallest" becomes "height > 0" (everything matches) and
+# "shortest" returns nothing. We intercept these queries before the LLM call,
+# return a synthetic top_n filter, and let apply_filters do the actual ranking
+# against the live dataset.
+
+_TOP_N = 5  # how many buildings to return for superlative queries
+
+_SUPERLATIVE_PATTERNS = [
+    # Tallest / highest / biggest / largest → height descending
+    (re.compile(r'\b(tallest|highest|biggest|largest)\b', re.IGNORECASE),
+     "height_m", "desc"),
+    # Shortest / smallest / lowest → height ascending
+    (re.compile(r'\b(shortest|smallest|lowest)\b', re.IGNORECASE),
+     "height_m", "asc"),
+    # Most expensive / priciest / highest value → assessed_value descending
+    (re.compile(r'\b(most\s+expensive|priciest|highest[- ]value)\b', re.IGNORECASE),
+     "assessed_value", "desc"),
+    # Cheapest / least expensive / lowest value → assessed_value ascending
+    (re.compile(r'\b(cheapest|least\s+expensive|lowest[- ]value)\b', re.IGNORECASE),
+     "assessed_value", "asc"),
+]
+
+
+def _detect_superlative(query):
+    """
+    Return a top_n filter dict if the query contains a superlative keyword,
+    otherwise return None.
+
+    This runs before the LLM so that ranking queries never reach the model.
+    LLMs trained on filter-extraction tasks interpret "tallest" as an open-ended
+    comparison (height > 0) and "shortest" often as nothing — both wrong.
+    The top_n operator is not part of the normal filter grammar; apply_filters
+    handles it as a sort-and-slice operation rather than a per-building predicate.
+
+    @param query: raw user query string
+    @returns: dict with operator="top_n" or None
+    """
+    for pattern, attribute, direction in _SUPERLATIVE_PATTERNS:
+        if pattern.search(query):
+            return {
+                "attribute": attribute,
+                "operator": "top_n",
+                "value": _TOP_N,
+                "direction": direction,
+            }
+    return None
+
+
 def query_llm(user_query):
     """
     Try LLM (provider from LLM_PROVIDER env), then regex fallback.
+    Superlative queries are intercepted before the LLM — see _detect_superlative.
     Returns: (filters_list, method_used, raw_response_or_None)
     """
+    # Superlative intercept — must run first; LLM cannot rank buildings
+    superlative = _detect_superlative(user_query)
+    if superlative is not None:
+        logger.info("Superlative detected in query — bypassing LLM")
+        return [superlative], "superlative", None
+
     if LLM_PROVIDER == "groq":
         filters, raw = _call_groq(user_query)
     else:
