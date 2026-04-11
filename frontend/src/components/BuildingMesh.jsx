@@ -5,6 +5,9 @@ import { latLonToXZ } from '../utils/geo'
 // Rotation maps ExtrudeGeometry's +Z extrusion → world +Y (up)
 const GROUP_ROT = [-Math.PI / 2, 0, 0]
 
+const DEFAULT_COLOR = '#3b7dd8'
+
+/** Builds a THREE.Shape from a GeoJSON footprint ring ([lon, lat][] format). */
 function buildShape(footprint) {
   const shape = new THREE.Shape()
   footprint.forEach(([lon, lat], i) => {
@@ -15,7 +18,14 @@ function buildShape(footprint) {
   return shape
 }
 
-function BuildingMesh({ building }) {
+/**
+ * Renders a single building as an extruded 3D mesh.
+ * Fires onClick(building) on pointer click; stopPropagation prevents
+ * bubbling through overlapping buildings in the scene graph.
+ *
+ * @param {{ building: Object, onClick: Function }} props
+ */
+function BuildingMesh({ building, onClick }) {
   const { footprint, height_m } = building
 
   const shape = useMemo(() => buildShape(footprint), [footprint])
@@ -25,15 +35,20 @@ function BuildingMesh({ building }) {
     [shape, height_m]
   )
 
+  function handleClick(e) {
+    e.stopPropagation()
+    onClick(building)
+  }
+
   return (
     <group rotation={GROUP_ROT}>
-      <mesh castShadow receiveShadow>
+      <mesh castShadow receiveShadow onClick={handleClick}>
         <extrudeGeometry args={extrudeArgs} />
-        <meshStandardMaterial color="#3b7dd8" />
+        <meshStandardMaterial color={DEFAULT_COLOR} />
       </mesh>
     </group>
   )
 }
 
-// Memo: buildings are fetched once and never mutate — skip all re-renders
+// Memo: buildings are fetched once and never mutate — only re-render on prop change
 export default memo(BuildingMesh)
