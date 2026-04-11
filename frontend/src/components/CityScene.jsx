@@ -20,7 +20,7 @@ const GROUND_ROT   = [-Math.PI / 2, 0, 0]
 const GRID_SIZE      = 2000
 const GRID_DIVISIONS = 40     // 2000m / 40 = 50m per cell
 const GRID_COLOR     = '#ffffff'
-const GRID_OPACITY   = 0.18
+const GRID_OPACITY   = 0.08
 // y=1.0 prevents z-fighting against the 2000×2000 ground plane — 0.01 is
 // not enough at this scale; GPU precision causes the lines to flicker.
 const GRID_Y_OFFSET  = 1.0
