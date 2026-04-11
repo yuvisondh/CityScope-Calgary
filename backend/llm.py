@@ -82,11 +82,12 @@ def _call_groq(user_query):
     try:
         from groq import Groq
         client = Groq(api_key=GROQ_API_KEY)
+        # _build_prompt_body includes SYSTEM_PROMPT + few-shot examples so the
+        # output format matches what _extract_json_filters expects — same as HF.
         response = client.chat.completions.create(
             model=GROQ_MODEL,
             messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": f"Extract the filter for this query: {user_query}"},
+                {"role": "user", "content": _build_prompt_body(user_query)},
             ],
             temperature=0.1,
             max_tokens=200,
