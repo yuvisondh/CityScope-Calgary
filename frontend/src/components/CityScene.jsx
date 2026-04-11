@@ -19,7 +19,7 @@ const GROUND_ROT   = [-Math.PI / 2, 0, 0]
 // Survey grid — var(--scene-grid), thin warm-grey lines at 50m intervals
 const GRID_SIZE      = 2000
 const GRID_DIVISIONS = 40          // 2000m / 40 = 50m per cell
-const GRID_COLOR     = '#3a342b'
+const GRID_COLOR     = '#ffffff'
 const GRID_Y_OFFSET  = 0.01       // just above ground to prevent z-fighting
 
 // Three-point lighting — warm sunlight primary, cool fill, warm ambient
@@ -62,7 +62,7 @@ function SurveyGrid() {
       args={[GRID_SIZE, GRID_DIVISIONS, GRID_COLOR, GRID_COLOR]}
       position={[0, GRID_Y_OFFSET, 0]}
       material-transparent
-      material-opacity={0.15}
+      material-opacity={0.18}
     />
   )
 }
