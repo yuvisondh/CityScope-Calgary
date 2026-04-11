@@ -287,10 +287,44 @@ def _regex_parse(query):
 
 
 def apply_filters(buildings, filters):
-    """Apply filter list to buildings list. Returns list of matched building IDs."""
+    """
+    Apply filter list to buildings list. Returns list of matched building IDs.
+
+    Handles two filter classes:
+    - Standard comparison filters (operators: >, <, >=, <=, ==, !=) — evaluated
+      per-building as boolean predicates.
+    - top_n filters (operator: "top_n") — sort the candidate pool by attribute
+      and return the top N IDs. Comparison filters narrow the pool first so
+      top_n can be combined with other criteria (e.g. "tallest commercial building").
+      Only the first top_n filter is applied if multiple are present.
+    """
     if not filters:
         return [b["id"] for b in buildings]
-    return [b["id"] for b in buildings if all(_check_filter(b, f) for f in filters)]
+
+    top_n_filters = [f for f in filters if f.get("operator") == "top_n"]
+    cmp_filters   = [f for f in filters if f.get("operator") != "top_n"]
+
+    # Step 1: narrow pool with comparison filters
+    if cmp_filters:
+        pool = [b for b in buildings if all(_check_filter(b, f) for f in cmp_filters)]
+    else:
+        pool = buildings
+
+    # Step 2: if a top_n filter exists, sort pool and slice
+    if top_n_filters:
+        f         = top_n_filters[0]
+        attr      = f["attribute"]
+        n         = f["value"]
+        direction = f.get("direction", "desc")
+        reverse   = direction == "desc"
+        ranked = sorted(
+            [b for b in pool if b.get(attr) is not None],
+            key=lambda b: b[attr],
+            reverse=reverse,
+        )
+        return [b["id"] for b in ranked[:n]]
+
+    return [b["id"] for b in pool]
 
 
 def _check_filter(building, filt):
