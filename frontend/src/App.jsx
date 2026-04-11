@@ -7,6 +7,7 @@ import CityScene from './components/CityScene'
 import BuildingInfoPanel from './components/BuildingInfoPanel'
 import QueryInput from './components/QueryInput'
 import ProjectPanel from './components/ProjectPanel'
+import ZoningLegend from './components/ZoningLegend'
 
 function App() {
   const { buildings, loading, error: buildingsError } = useBuildings()
@@ -76,6 +77,9 @@ function App() {
         building={selectedBuilding}
         onClose={handleClosePanel}
       />
+
+      {/* Zoning legend — top right, hides when info panel is showing */}
+      <ZoningLegend visible={!selectedBuilding} />
 
       {/* Project panel — bottom left */}
       <ProjectPanel
