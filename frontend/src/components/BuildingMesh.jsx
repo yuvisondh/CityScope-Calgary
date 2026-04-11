@@ -5,7 +5,8 @@ import { latLonToXZ } from '../utils/geo'
 // Rotation maps ExtrudeGeometry's +Z extrusion → world +Y (up)
 const GROUP_ROT = [-Math.PI / 2, 0, 0]
 
-const DEFAULT_COLOR = '#3b7dd8'
+const DEFAULT_COLOR  = '#3b7dd8'
+const SELECTED_COLOR = '#f59e0b'
 
 /** Builds a THREE.Shape from a GeoJSON footprint ring ([lon, lat][] format). */
 function buildShape(footprint) {
@@ -23,9 +24,9 @@ function buildShape(footprint) {
  * Fires onClick(building) on pointer click; stopPropagation prevents
  * bubbling through overlapping buildings in the scene graph.
  *
- * @param {{ building: Object, onClick: Function }} props
+ * @param {{ building: Object, isSelected: boolean, onClick: Function }} props
  */
-function BuildingMesh({ building, onClick }) {
+function BuildingMesh({ building, isSelected, onClick }) {
   const { footprint, height_m } = building
 
   const shape = useMemo(() => buildShape(footprint), [footprint])
@@ -44,7 +45,8 @@ function BuildingMesh({ building, onClick }) {
     <group rotation={GROUP_ROT}>
       <mesh castShadow receiveShadow onClick={handleClick}>
         <extrudeGeometry args={extrudeArgs} />
-        <meshStandardMaterial color={DEFAULT_COLOR} />
+        {/* R3F updates color in-place on the existing material — no disposal needed */}
+        <meshStandardMaterial color={isSelected ? SELECTED_COLOR : DEFAULT_COLOR} />
       </mesh>
     </group>
   )
