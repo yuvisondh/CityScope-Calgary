@@ -18,7 +18,7 @@ function Ground() {
   )
 }
 
-export default function CityScene({ buildings, onBuildingClick }) {
+export default function CityScene({ buildings, selectedBuildingId, onBuildingClick }) {
   return (
     <Canvas camera={CAMERA} shadows style={{ background: '#0d1117' }}>
       <ambientLight intensity={0.35} />
@@ -30,7 +30,12 @@ export default function CityScene({ buildings, onBuildingClick }) {
       />
       <Ground />
       {buildings.map(building => (
-        <BuildingMesh key={building.id} building={building} onClick={onBuildingClick} />
+        <BuildingMesh
+          key={building.id}
+          building={building}
+          isSelected={selectedBuildingId === building.id}
+          onClick={onBuildingClick}
+        />
       ))}
       <OrbitControls
         makeDefault
