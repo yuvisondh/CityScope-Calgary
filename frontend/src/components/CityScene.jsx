@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useRef, useEffect } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import BuildingMesh from './BuildingMesh'
@@ -16,11 +16,14 @@ const GROUND_COLOR = '#0e0c09'
 const GROUND_ARGS  = [2000, 2000]
 const GROUND_ROT   = [-Math.PI / 2, 0, 0]
 
-// Survey grid — var(--scene-grid), thin warm-grey lines at 50m intervals
+// Survey grid — white lines at 50m intervals
 const GRID_SIZE      = 2000
-const GRID_DIVISIONS = 40          // 2000m / 40 = 50m per cell
+const GRID_DIVISIONS = 40     // 2000m / 40 = 50m per cell
 const GRID_COLOR     = '#ffffff'
-const GRID_Y_OFFSET  = 0.01       // just above ground to prevent z-fighting
+const GRID_OPACITY   = 0.18
+// y=1.0 prevents z-fighting against the 2000×2000 ground plane — 0.01 is
+// not enough at this scale; GPU precision causes the lines to flicker.
+const GRID_Y_OFFSET  = 1.0
 
 // Three-point lighting — warm sunlight primary, cool fill, warm ambient
 const AMBIENT_COLOR    = '#fff5e6'
@@ -52,17 +55,35 @@ function Ground() {
 }
 
 /**
- * SurveyGrid — thin warm-grey grid lines at 50m intervals.
+ * SurveyGrid — white grid lines at 50m intervals.
  * Reads as a survey-grid reference; barely visible from default camera
  * distance, more prominent only when zoomed in.
+ *
+ * Opacity is applied via ref + useEffect rather than R3F pierce props
+ * (material-transparent / material-opacity) because Three.js gridHelper
+ * creates a LineSegments with an *array* of two LineBasicMaterials — one
+ * for the center lines and one for the grid lines. Pierce props only reach
+ * a single material, so opacity was silently ignored.
  */
 function SurveyGrid() {
+  const ref = useRef()
+
+  useEffect(() => {
+    if (!ref.current) return
+    const materials = Array.isArray(ref.current.material)
+      ? ref.current.material
+      : [ref.current.material]
+    materials.forEach(m => {
+      m.transparent = true
+      m.opacity = GRID_OPACITY
+    })
+  }, [])
+
   return (
     <gridHelper
+      ref={ref}
       args={[GRID_SIZE, GRID_DIVISIONS, GRID_COLOR, GRID_COLOR]}
       position={[0, GRID_Y_OFFSET, 0]}
-      material-transparent
-      material-opacity={0.18}
     />
   )
 }
