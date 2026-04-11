@@ -94,10 +94,10 @@ function App() {
         onDelete={deleteProject}
       />
 
-      {/* Query bar — bottom center */}
+      {/* Query bar — bottom center, 24px from bottom per spec Section 4 */}
       <div style={{
         position: 'absolute',
-        bottom: 32,
+        bottom: 24,
         left: '50%',
         transform: 'translateX(-50%)',
         zIndex: 10,
