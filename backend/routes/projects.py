@@ -29,8 +29,11 @@ def create_project():
 
     if not username or not name:
         return jsonify({"error": "Missing 'username' or 'name'"}), 400
-    if not isinstance(filters, list):
-        return jsonify({"error": "'filters' must be an array"}), 400
+    # Accept any JSON-serializable value (object or array) — the frontend now
+    # stores a snapshot object { filters: [...], matchedIds: [...] } rather than
+    # a bare array so that projects can be restored without a second LLM call.
+    if filters is None:
+        return jsonify({"error": "'filters' is required"}), 400
 
     project = Project(
         username=username,
