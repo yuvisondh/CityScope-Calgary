@@ -8,7 +8,7 @@ import QueryInput from './components/QueryInput'
 
 function App() {
   const { buildings, loading, error: buildingsError } = useBuildings()
-  const { matchedIds, filters, methodUsed, loading: queryLoading, error: queryError, submitQuery, clearQuery } = useQuery()
+  const { matchedIds, methodUsed, loading: queryLoading, error: queryError, submitQuery } = useQuery()
   const [selectedBuilding, setSelectedBuilding] = useState(null)
 
   const handleBuildingClick = useCallback((building) => {
