@@ -23,14 +23,13 @@
   --accent-flag-muted: rgba(200, 16, 46, 0.12);
 
   /* ── Building Zoning Bucket Colors ──────────────────────────────────────── */
-  /* Revised from original spec for better hue separation — five distinct    */
-  /* hues (sand, green, blue, rose, grey) that still read as a muted city    */
-  /* palette. Original spec had all five in the warm-brown range.            */
-  --zoning-commercial:  #c4a478;   /* warm sand — CC-*, C-COR, C-C2        */
-  --zoning-mixed:       #8b9e8b;   /* sage green — CR20, M-CG, M-X*, MU-* */
-  --zoning-residential: #7895a3;   /* dusty blue — RC-G, R-*               */
-  --zoning-industrial:  #a08070;   /* clay rose — I-*, S-*, DC             */
-  --zoning-other:       #8a8580;   /* warm concrete — fallback             */
+  /* Data-driven buckets matching the Beltline dataset's six unique codes.   */
+  /* Source of truth: frontend/src/utils/zoning.js (BUCKETS array).          */
+  --zoning-mixed-use-commercial:    #c4a478;  /* warm sand — CC-X, CC-MHX        */
+  --zoning-commercial-corridor:     #7895a3;  /* dusty blue — CC-COR, C-COR1     */
+  --zoning-high-density-commercial: #8b9e8b;  /* sage green — CC-MH              */
+  --zoning-direct-control:          #a08070;  /* clay rose — DC                  */
+  --zoning-other:                   #8a8580;  /* warm concrete — fallback        */
 
   /* ── Selection / Highlight ──────────────────────────────────────────────── */
   --selection-color:  #c8102e;     /* same as accent-flag                  */
