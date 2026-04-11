@@ -32,14 +32,18 @@ export function useQuery() {
 
     try {
       const data = await postQuery(queryText)
-      // Functional setState: safe even if multiple updates are batched
-      setMatchedIds(data.matched_ids  ?? [])
-      setFilters(data.filters         ?? [])
-      setMethodUsed(data.method_used  ?? 'none')
+      // Backend returns a 200 with an `error` field when the LLM can't parse
+      if (data.error) {
+        setError(data.error)
+        return
+      }
+      setMatchedIds(data.matched_ids ?? [])
+      setFilters(data.filters        ?? [])
+      setMethodUsed(data.method      ?? 'none')   // route field is `method`, not `method_used`
     } catch (err) {
       setError(err.message)
     } finally {
-      setLoading(prev => { void prev; return false })
+      setLoading(false)
     }
   }, [])  // no deps — postQuery is a module-level stable import
 
