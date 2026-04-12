@@ -3,7 +3,7 @@ import json
 import os
 from flask import Flask, jsonify
 from flask_cors import CORS
-from config import FRONTEND_ORIGINS, DATABASE_URL
+from config import FRONTEND_ORIGINS
 from models import db
 
 # Global buildings cache — loaded once at startup
@@ -22,11 +22,11 @@ def load_buildings():
 
 
 def _resolve_db_url():
-    # On Render, use a persistent-disk path so the SQLite file survives restarts.
-    # The disk should be mounted at /var/data in the Render service settings.
-    if os.getenv("RENDER"):
-        return "sqlite:////var/data/projects.db"
-    return DATABASE_URL
+    # Explicit env var always wins (set DATABASE_URL in Render dashboard if needed).
+    if os.getenv("DATABASE_URL"):
+        return os.getenv("DATABASE_URL")
+    # /tmp is always writable on any Linux host including Render free tier.
+    return "sqlite:////tmp/projects.db"
 
 
 def create_app():
@@ -38,7 +38,12 @@ def create_app():
     db.init_app(app)
 
     with app.app_context():
-        db.create_all()
+        try:
+            db.create_all()
+        except Exception as e:
+            # Non-fatal: buildings and queries still work; only project save/load
+            # will be unavailable. Logged so it is visible in Render's log stream.
+            print(f"WARNING: database init failed ({e}). Project persistence disabled.")
 
     from routes.buildings import buildings_bp
     from routes.query import query_bp
