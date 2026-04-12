@@ -1,6 +1,6 @@
 # Calgary 3D Dashboard
 
-A 3D city dashboard for Calgary's Beltline neighbourhood. Built as a take-home submission for MASIV. Renders 125 real buildings from Calgary Open Data as extruded 3D footprints, colored by zoning, with a natural language query interface backed by an LLM.
+A 3D city dashboard for Calgary's Beltline neighbourhood. It renders 125 real buildings from Calgary Open Data as extruded 3D footprints, colored by zoning, with a natural language query interface backed by an LLM.
 
 **Author:** Yuvraj Sondh · April 2026
 
