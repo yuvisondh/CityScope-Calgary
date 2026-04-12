@@ -19,6 +19,9 @@ backend/.env
 .vscode/
 *.sw?
 
+# ── Claude Code internals ───────────────────────────────────────────────────
+.claude/
+
 # ── Build artefacts ────────────────────────────────────────────────────────
 *.tsbuildinfo
 .eslintcache

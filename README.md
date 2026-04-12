@@ -35,14 +35,14 @@ A 3D city dashboard for Calgary's Beltline neighbourhood. Built as a take-home s
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| 3D rendering | React + Three.js via `@react-three/fiber` |
-| Backend | Python 3.12, Flask, SQLAlchemy |
-| Database | SQLite (projects table) |
-| LLM | Groq API — `llama-3.3-70b-versatile` |
-| Data | Calgary Open Data (building footprints + 2026 assessment roll) |
-| Fonts | IBM Plex Sans + IBM Plex Mono via Google Fonts |
+| Layer          | Technology                                                      |
+| -------------- | --------------------------------------------------------------- |
+| 3D rendering   | React + Three.js via `@react-three/fiber`                       |
+| Backend        | Python 3.12, Flask, SQLAlchemy                                  |
+| Database       | SQLite (projects table)                                         |
+| LLM            | Groq API — `llama-3.3-70b-versatile`                            |
+| Data           | Calgary Open Data (building footprints + 2026 assessment roll)  |
+| Fonts          | IBM Plex Sans + IBM Plex Mono via Google Fonts                  |
 
 ---
 
@@ -124,13 +124,13 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ### Environment variables reference
 
-| Variable | Required | Default | Description |
-|---|---|---|---|
-| `LLM_PROVIDER` | No | `huggingface` | Set to `groq` to use Groq |
-| `GROQ_API_KEY` | For LLM queries | — | Your Groq API key |
-| `GROQ_MODEL` | No | `llama-3.3-70b-versatile` | Groq model ID |
-| `FRONTEND_URL` | No | `http://localhost:5173` | CORS origin for the frontend |
-| `DATABASE_URL` | No | `sqlite:///projects.db` | SQLAlchemy database URL |
+| Variable          | Required          | Default                       | Description                         |
+| ----------------- | ----------------- | ----------------------------- | ----------------------------------- |
+| `LLM_PROVIDER`    | No                | `huggingface`                 | Set to `groq` to enable the LLM     |
+| `GROQ_API_KEY`    | For LLM queries   | —                             | Your Groq API key                   |
+| `GROQ_MODEL`      | No                | `llama-3.3-70b-versatile`     | Groq model ID                       |
+| `FRONTEND_URL`    | No                | `http://localhost:5173`       | CORS origin for the frontend        |
+| `DATABASE_URL`    | No                | `sqlite:///projects.db`       | SQLAlchemy database URL             |
 
 ---
 
@@ -152,12 +152,12 @@ The method badge on the query bar always shows which path answered the query: **
 
 Buildings are colored by Calgary zoning code, grouped into four buckets:
 
-| Bucket | Codes | Color |
-|---|---|---|
-| Mixed-use commercial | CC-X, CC-MHX | Warm sand |
-| Commercial corridor | CC-COR, C-COR1 | Dusty blue |
-| High-density commercial | CC-MH | Sage green |
-| Direct control | DC | Clay rose |
+| Bucket                   | Codes           | Color      |
+| ------------------------ | --------------- | ---------- |
+| Mixed-use commercial     | CC-X, CC-MHX    | Warm sand  |
+| Commercial corridor      | CC-COR, C-COR1  | Dusty blue |
+| High-density commercial  | CC-MH           | Sage green |
+| Direct control           | DC              | Clay rose  |
 
 Selected buildings (click) and query-matched buildings both use Calgary Flames red — the single accent color of the UI. The spec for this is documented in `DESIGN_SPEC.md`.
 
@@ -201,11 +201,10 @@ masiv-dashboard/
 │           ├── geo.js          # lat/lon → Three.js XZ conversion
 │           └── zoning.js       # BUCKETS array + zoningToBucket()
 ├── docs/
-│   ├── screenshots/
-│   └── uml/                    # Architecture, class, and sequence diagrams
+│   ├── screenshots/            # overview.png, inspection.png, query.png
+│   └── uml/                    # Architecture, class, and sequence diagrams (PNG + .mmd source)
 ├── DESIGN_SPEC.md              # Visual design specification
-├── DECISIONS.md                # Engineering decisions and rationale
-└── PLAN.md                     # Original implementation plan
+└── DECISIONS.md                # Engineering decisions and rationale
 ```
 
 ---
