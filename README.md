@@ -6,6 +6,16 @@ A 3D city dashboard for Calgary's Beltline neighbourhood. Built as a take-home s
 
 ---
 
+## Live Demo
+
+**[masiv-dashboard.vercel.app](https://masiv-dashboard.vercel.app)**
+
+> The backend runs on Render's free tier and sleeps after 15 minutes of inactivity. The first load may take 20–30 seconds — this is expected. Subsequent interactions are instant.
+
+> Saved projects are stored in memory on the backend instance. They persist for the lifetime of the Render process but reset on redeploy. This is a known limitation of the free tier and is documented in `DECISIONS.md`.
+
+---
+
 ## Screenshots
 
 ### City overview
@@ -43,10 +53,12 @@ A 3D city dashboard for Calgary's Beltline neighbourhood. Built as a take-home s
 | LLM            | Groq API — `llama-3.3-70b-versatile`                            |
 | Data           | Calgary Open Data (building footprints + 2026 assessment roll)  |
 | Fonts          | IBM Plex Sans + IBM Plex Mono via Google Fonts                  |
+| Backend host   | Render (free tier)                                              |
+| Frontend host  | Vercel                                                          |
 
 ---
 
-## Setup
+## Local Setup
 
 ### Prerequisites
 
@@ -58,12 +70,11 @@ A 3D city dashboard for Calgary's Beltline neighbourhood. Built as a take-home s
 
 ### 1. Get a Groq API key
 
-The LLM query feature requires a Groq API key (free tier is sufficient — no credit card required).
+The LLM query feature requires a Groq API key (free tier — no credit card required).
 
-1. Go to [console.groq.com](https://console.groq.com) and sign up for a free account
-2. Navigate to **API Keys** in the left sidebar
-3. Click **Create API Key**, give it a name, and copy the key
-4. You'll paste it into `backend/.env` in step 3 below
+1. Go to [console.groq.com](https://console.groq.com) and sign up
+2. Navigate to **API Keys** → **Create API Key** → copy the key
+3. Paste it into `backend/.env` in step 2 below
 
 > The app works without a key — it falls back to the regex parser for common query patterns. Superlative queries (tallest, cheapest, etc.) also work without it.
 
@@ -74,14 +85,11 @@ The LLM query feature requires a Groq API key (free tier is sufficient — no cr
 ```bash
 cd backend
 
-# Create and activate a virtual environment
 python3 -m venv venv
 source venv/bin/activate          # Windows: venv\Scripts\activate
 
-# Install dependencies
 pip install -r requirements.txt
 
-# Create your environment file
 cp .env.example .env
 ```
 
@@ -110,11 +118,7 @@ In a new terminal:
 
 ```bash
 cd frontend
-
-# Install dependencies
 npm install
-
-# Start the dev server
 npm run dev
 ```
 
@@ -124,13 +128,13 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ### Environment variables reference
 
-| Variable          | Required          | Default                       | Description                         |
-| ----------------- | ----------------- | ----------------------------- | ----------------------------------- |
-| `LLM_PROVIDER`    | No                | `huggingface`                 | Set to `groq` to enable the LLM     |
-| `GROQ_API_KEY`    | For LLM queries   | —                             | Your Groq API key                   |
-| `GROQ_MODEL`      | No                | `llama-3.3-70b-versatile`     | Groq model ID                       |
-| `FRONTEND_URL`    | No                | `http://localhost:5173`       | CORS origin for the frontend        |
-| `DATABASE_URL`    | No                | `sqlite:///projects.db`       | SQLAlchemy database URL             |
+| Variable          | Required        | Default                       | Description                              |
+| ----------------- | --------------- | ----------------------------- | ---------------------------------------- |
+| `LLM_PROVIDER`    | No              | `huggingface`                 | Set to `groq` to enable the LLM          |
+| `GROQ_API_KEY`    | For LLM queries | —                             | Your Groq API key                        |
+| `GROQ_MODEL`      | No              | `llama-3.3-70b-versatile`     | Groq model ID                            |
+| `FRONTEND_URL`    | No              | `http://localhost:5173`       | CORS origin(s) — comma-separated for prod|
+| `DATABASE_URL`    | No              | `sqlite:////tmp/projects.db`  | SQLAlchemy database URL                  |
 
 ---
 
@@ -150,7 +154,7 @@ The method badge on the query bar always shows which path answered the query: **
 
 ### Building colors
 
-Buildings are colored by Calgary zoning code, grouped into four buckets:
+Buildings are colored by Calgary zoning code, grouped into four data-driven buckets:
 
 | Bucket                   | Codes           | Color      |
 | ------------------------ | --------------- | ---------- |
@@ -159,7 +163,7 @@ Buildings are colored by Calgary zoning code, grouped into four buckets:
 | High-density commercial  | CC-MH           | Sage green |
 | Direct control           | DC              | Clay rose  |
 
-Selected buildings (click) and query-matched buildings both use Calgary Flames red — the single accent color of the UI. The spec for this is documented in `DESIGN_SPEC.md`.
+Selected buildings (click) and query-matched buildings both use Calgary Flames red — the single accent color of the UI. The full visual system is documented in `DESIGN_SPEC.md`.
 
 ### Data
 
@@ -243,8 +247,10 @@ Full-resolution diagrams are in `docs/uml/`.
 ## Known limitations
 
 - **Desktop only** — the 3D canvas is not optimized for mobile viewports
+- **Saved projects are ephemeral** — on the free Render tier, the SQLite database resets on redeploy. A production deployment would use a managed database.
 - **No tests** — given the 36-hour timeline, pytest coverage for the regex parser and superlative logic would be the first addition
 - **Beltline only** — the dataset covers one Calgary neighbourhood. Expanding coverage would require re-running `scripts/fetch_data.py` with wider bounding box parameters
+- **Composite superlative queries** — "tallest commercial building" is not yet supported; the superlative preprocessor runs before comparison filters are applied
 
 ---
 
