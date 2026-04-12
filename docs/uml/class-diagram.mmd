@@ -9,20 +9,15 @@ classDiagram
         +String zoning
         +String land_use
         +Int assessed_value
-        +List~List~Float~~ footprint
+        +List footprint
     }
 
     class Project {
         +Int id
         +String username
         +String name
-        +FilterSnapshot filters
+        +JSON filters_json
         +DateTime created_at
-    }
-
-    class FilterSnapshot {
-        +List~Filter~ filters
-        +List~String~ matchedIds
     }
 
     class Filter {
@@ -32,34 +27,4 @@ classDiagram
         +String direction
     }
 
-    class ZoningBucket {
-        +String id
-        +String label
-        +String color
-        +String description
-        +List~String~ codes
-    }
-
-    class LLMQueryResult {
-        +List~Filter~ filters
-        +List~String~ matched_ids
-        +String method
-        +String raw_query
-    }
-
-    class QueryMethod {
-        <<enumeration>>
-        llm
-        fallback
-        superlative
-        saved
-        none
-    }
-
-    Project "1" --> "1" FilterSnapshot : stores
-    FilterSnapshot "1" --> "*" Filter : contains
-    LLMQueryResult "1" --> "*" Filter : produces
-    LLMQueryResult "1" --> "*" Building : matches
-    LLMQueryResult --> QueryMethod : reports
-    Building --> ZoningBucket : classified by
-    Filter --> QueryMethod : operator top_n used by superlative
+    Project "1" --> "*" Filter : stores

@@ -1,44 +1,23 @@
 sequenceDiagram
     actor User
     participant Frontend as React Frontend
-    participant Flask as Flask Backend
-    participant Superlative as Superlative Preprocessor
-    participant Groq as Groq API (llama-3.3-70b)
-    participant Regex as Regex Fallback
+    participant Backend as Flask Backend
+    participant Groq as Groq LLM
 
-    User->>Frontend: Types "show me the tallest building"
-    Frontend->>Flask: POST /api/query {query: "..."}
+    User->>Frontend: Types natural language query
+    Frontend->>Backend: POST /api/query {query}
 
-    Flask->>Superlative: _detect_superlative(query)
-    alt Superlative keyword detected (tallest / shortest / most expensive / cheapest)
-        Superlative-->>Flask: {attribute: height_m, operator: top_n, value: 5, direction: desc}
-        Flask->>Flask: apply_filters() — sort + slice top N
-        Flask-->>Frontend: {filters: [...], matched_ids: [...], method: "superlative"}
-    else No superlative keyword
-        Flask->>Groq: POST /openai/v1/chat/completions
-        alt Groq responds with valid filter JSON
-            Groq-->>Flask: {"filters": [{"attribute":"height_m","operator":">","value":30.48}]}
-            Flask->>Flask: Validate + apply filters to buildings dataset
-            Flask-->>Frontend: {filters: [...], matched_ids: [...], method: "llm"}
-        else Groq timeout or invalid JSON
-            Groq-->>Flask: Error or unparseable response
-            Flask->>Regex: _regex_parse(query)
-            alt Regex matches
-                Regex-->>Flask: [{"attribute": ..., "operator": ..., "value": ...}]
-                Flask->>Flask: apply_filters() — per-building predicate evaluation
-                Flask-->>Frontend: {filters: [...], matched_ids: [...], method: "fallback"}
-            else No match
-                Regex-->>Flask: null
-                Flask-->>Frontend: {error: "Could not interpret your query", method: "none"}
-            end
-        end
-    end
+    Note over Backend: Superlative check first (tallest/cheapest etc.)<br/>then Groq, then regex fallback
 
-    alt matched_ids returned
-        Frontend->>Frontend: useQuery.loadFilters / setMatchedIds
-        Frontend->>Frontend: BuildingMesh re-renders matched buildings in Flames red
-        Frontend->>Frontend: Status badge: "N / 125 matched"
-        Frontend->>Frontend: QueryInput badge: "via AI" / "via pattern match" / "via superlative"
-    else error returned
-        Frontend->>Frontend: QueryInput shows error message
+    Backend->>Groq: Chat completion request with few-shot prompt
+    alt Groq returns valid filter JSON
+        Groq-->>Backend: filters array
+        Backend->>Backend: Apply filters to buildings dataset
+        Backend-->>Frontend: matched_ids + filters + method "llm"
+        Frontend->>Frontend: Highlight matched buildings in Flames red
+        Frontend->>Frontend: Update status badge and method badge
+    else Groq fails or returns unparseable response
+        Groq-->>Backend: Error or invalid JSON
+        Backend->>Backend: Regex fallback or return no-match
+        Backend-->>Frontend: matched_ids + method "fallback" or error
     end
