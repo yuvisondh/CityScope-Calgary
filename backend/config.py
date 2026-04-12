@@ -16,7 +16,12 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///projects.db")
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+
+# Accepts a comma-separated list of origins so both localhost and the Vercel
+# URL can be allowed simultaneously without changing code between environments.
+# Example: FRONTEND_URL=https://masiv.vercel.app,http://localhost:5173
+_frontend_url_raw = os.getenv("FRONTEND_URL", "http://localhost:5173")
+FRONTEND_ORIGINS = [u.strip() for u in _frontend_url_raw.split(",") if u.strip()]
 
 # Beltline bounding box (SW corner to NE corner)
 BELTLINE_BOUNDS = {

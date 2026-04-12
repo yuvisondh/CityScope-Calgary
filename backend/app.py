@@ -3,7 +3,7 @@ import json
 import os
 from flask import Flask, jsonify
 from flask_cors import CORS
-from config import FRONTEND_URL, DATABASE_URL
+from config import FRONTEND_ORIGINS, DATABASE_URL
 from models import db
 
 # Global buildings cache — loaded once at startup
@@ -21,12 +21,20 @@ def load_buildings():
         print("WARNING: data/buildings.json not found. Run scripts/fetch_data.py first.")
 
 
+def _resolve_db_url():
+    # On Render, use a persistent-disk path so the SQLite file survives restarts.
+    # The disk should be mounted at /var/data in the Render service settings.
+    if os.getenv("RENDER"):
+        return "sqlite:////var/data/projects.db"
+    return DATABASE_URL
+
+
 def create_app():
     app = Flask(__name__)
-    app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
+    app.config["SQLALCHEMY_DATABASE_URI"] = _resolve_db_url()
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-    CORS(app, origins=[FRONTEND_URL, "http://localhost:5173"])
+    CORS(app, origins=FRONTEND_ORIGINS)
     db.init_app(app)
 
     with app.app_context():
@@ -54,4 +62,5 @@ def create_app():
 app = create_app()
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    port = int(os.getenv("PORT", 5000))
+    app.run(debug=True, port=port)
