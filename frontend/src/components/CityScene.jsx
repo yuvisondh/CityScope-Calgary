@@ -3,6 +3,7 @@ import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import BuildingMesh from './BuildingMesh'
 import Roads from './Roads'
+import { getSunState } from '../utils/sunlight'
 
 // ─── Scene constants (all colors reference DESIGN_SPEC.md tokens) ─────────────
 // Camera pulled back to show the full ~846m × 518m Beltline dataset
@@ -30,18 +31,18 @@ const GRID_OPACITY   = 0.04
 // not enough at this scale; GPU precision causes the lines to flicker.
 const GRID_Y_OFFSET  = 1.0
 
-// Three-point lighting — warm sunlight primary, cool fill, warm ambient
-const AMBIENT_COLOR    = '#fff5e6'
-const AMBIENT_INTENSITY = 0.45
-
-const PRIMARY_LIGHT_POS       = [200, 400, 200]
-const PRIMARY_LIGHT_COLOR     = '#ffe9c9'
-const PRIMARY_LIGHT_INTENSITY = 0.85
-const SHADOW_MAP_SIZE         = [2048, 2048]
-
+// Three-point lighting — warm sunlight primary, cool fill, warm ambient.
+// Static defaults below describe the noon baseline; runtime values come from
+// getSunState(sunHour) so the lighting follows the time-of-day slider.
+//   AMBIENT_COLOR        = '#fff5e6'
+//   AMBIENT_INTENSITY    = 0.45
+//   PRIMARY_LIGHT_POS    = [200, 400, 200]
+//   PRIMARY_LIGHT_COLOR  = '#ffe9c9'
+//   PRIMARY_LIGHT_INTENSITY = 0.85
+//   FILL_LIGHT_INTENSITY = 0.25
+const SHADOW_MAP_SIZE      = [2048, 2048]
 const FILL_LIGHT_POS       = [-200, 200, -200]
 const FILL_LIGHT_COLOR     = '#aab8c4'
-const FILL_LIGHT_INTENSITY = 0.25
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -106,27 +107,28 @@ function SurveyGrid() {
  * intercept in HTML space before reaching the canvas. The ground mesh uses
  * raycast={() => null} so it doesn't block this.
  *
- * @param {{ buildings: Object[], selectedBuildingId: string|null, matchedIds: string[], onBuildingClick: Function, onDeselect: Function }} props
+ * @param {{ buildings: Object[], selectedBuildingId: string|null, matchedIds: string[], sunHour: number, onBuildingClick: Function, onDeselect: Function }} props
  */
-export default function CityScene({ buildings, selectedBuildingId, matchedIds, onBuildingClick, onDeselect }) {
+export default function CityScene({ buildings, selectedBuildingId, matchedIds, sunHour = 14, onBuildingClick, onDeselect }) {
   // Set for O(1) highlight lookup (js-index-maps) — recomputed only when matchedIds changes
   const matchedSet = useMemo(() => new Set(matchedIds), [matchedIds])
+  const sun = useMemo(() => getSunState(sunHour), [sunHour])
 
   return (
     <Canvas camera={CAMERA} shadows style={{ background: SCENE_BG }} onPointerMissed={onDeselect}>
       {/* Three-point lighting: warm ambient + warm directional primary + cool fill */}
-      <ambientLight color={AMBIENT_COLOR} intensity={AMBIENT_INTENSITY} />
+      <ambientLight color={sun.ambientColor} intensity={sun.ambientIntensity} />
       <directionalLight
-        position={PRIMARY_LIGHT_POS}
-        color={PRIMARY_LIGHT_COLOR}
-        intensity={PRIMARY_LIGHT_INTENSITY}
+        position={sun.position}
+        color={sun.color}
+        intensity={sun.intensity}
         castShadow
         shadow-mapSize={SHADOW_MAP_SIZE}
       />
       <directionalLight
         position={FILL_LIGHT_POS}
         color={FILL_LIGHT_COLOR}
-        intensity={FILL_LIGHT_INTENSITY}
+        intensity={sun.fillIntensity}
       />
 
       <Ground />
