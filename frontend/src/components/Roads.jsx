@@ -4,7 +4,7 @@ import { fetchRoads } from '../utils/roads.js'
 
 const ROAD_COLOR   = '#3a342b'
 const ROAD_OPACITY = 0.4
-const ROAD_Y       = 0.05
+const ROAD_Y       = 1.0
 
 function buildGeometry(segments) {
   // Each segment of N points contributes (N-1) line pairs = 2*(N-1) vertices.

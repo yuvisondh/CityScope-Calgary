@@ -10,7 +10,13 @@ const LIMIT = 500
 function projectFeature(feature) {
   const geom = feature?.geometry
   if (!geom) return []
-  const project = ([lon, lat]) => latLonToXZ(lat, lon)
+  // Negate Z to match BuildingMesh's <group rotation={[-π/2, 0, 0]}>, which
+  // sends shape-local Y (= latLonToXZ's z) to world -Z. Roads render in
+  // world space with no rotation group, so we apply the flip here.
+  const project = ([lon, lat]) => {
+    const [x, z] = latLonToXZ(lat, lon)
+    return [x, -z]
+  }
   if (geom.type === 'LineString') {
     return [geom.coordinates.map(project)]
   }
