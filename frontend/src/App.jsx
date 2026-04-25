@@ -8,6 +8,7 @@ import BuildingInfoPanel from './components/BuildingInfoPanel'
 import QueryInput from './components/QueryInput'
 import ProjectPanel from './components/ProjectPanel'
 import ZoningLegend from './components/ZoningLegend'
+import TimeSlider from './components/TimeSlider'
 
 function App() {
   const { buildings, loading, error: buildingsError } = useBuildings()
@@ -31,6 +32,7 @@ function App() {
     deleteProject,
   } = useProjects()
   const [selectedBuilding, setSelectedBuilding] = useState(null)
+  const [sunHour, setSunHour] = useState(14)
 
   const handleBuildingClick = useCallback((building) => {
     setSelectedBuilding(building)
@@ -70,6 +72,7 @@ function App() {
         buildings={buildings}
         selectedBuildingId={selectedBuilding?.id ?? null}
         matchedIds={matchedIds}
+        sunHour={sunHour}
         onBuildingClick={handleBuildingClick}
         onDeselect={handleClosePanel}
       />
@@ -94,6 +97,17 @@ function App() {
         onLoad={handleLoadProject}
         onDelete={deleteProject}
       />
+
+      {/* Time-of-day slider — sits just above the query bar */}
+      <div style={{
+        position: 'absolute',
+        bottom: 80,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 10,
+      }}>
+        <TimeSlider value={sunHour} onChange={setSunHour} />
+      </div>
 
       {/* Query bar — bottom center, 24px from bottom per spec Section 4 */}
       <div style={{
