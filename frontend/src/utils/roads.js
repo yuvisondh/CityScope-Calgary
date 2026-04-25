@@ -7,8 +7,9 @@ const BBOX = {
   maxLon: -114.062,
 }
 
-const BASE_URL = 'https://data.calgary.ca/resource/hkdi-mfmp.geojson'
-const SPATIAL_BOX = `within_box(__GEOM__,${BBOX.maxLat},${BBOX.minLon},${BBOX.minLat},${BBOX.maxLon})`
+const PRIMARY_URL  = 'https://data.calgary.ca/resource/4dx8-rtm5.geojson'
+const FALLBACK_URL = 'https://data.calgary.ca/resource/mybc-x96b.geojson'
+const SPATIAL_BOX = `within_box(the_geom,${BBOX.maxLat},${BBOX.minLon},${BBOX.minLat},${BBOX.maxLon})`
 const LIMIT = 500
 
 async function tryFetch(url) {
@@ -56,34 +57,35 @@ function projectFeature(feature) {
  * Fetch Calgary road centerlines within the Beltline study bbox and project
  * them through the same latLonToXZ used by the building meshes.
  *
- * Tries the Socrata spatial query against `the_geom` first, falls back to
- * `multilinestring`, then to an unfiltered fetch with client-side bbox
- * filtering if both spatial queries fail.
+ * Tries the Street Centreline dataset (4dx8-rtm5) with a spatial filter, then
+ * falls back to the Major Road Network (mybc-x96b). For each dataset, attempts
+ * a $where=within_box spatial query first, then an unfiltered fetch with
+ * client-side bbox filtering.
  *
  * @returns {Promise<Array<Array<[number, number]>>>} road segments as
  *   arrays of projected [x, z] points.
  */
 export async function fetchRoads() {
-  const attempts = [
-    `${BASE_URL}?$where=${encodeURIComponent(SPATIAL_BOX.replace('__GEOM__', 'the_geom'))}&$limit=${LIMIT}`,
-    `${BASE_URL}?$where=${encodeURIComponent(SPATIAL_BOX.replace('__GEOM__', 'multilinestring'))}&$limit=${LIMIT}`,
-  ]
+  const datasets = [PRIMARY_URL, FALLBACK_URL]
 
   let features = null
-  for (const url of attempts) {
+  for (const base of datasets) {
     try {
-      const data = await tryFetch(url)
+      const data = await tryFetch(`${base}?$where=${encodeURIComponent(SPATIAL_BOX)}&$limit=${LIMIT}`)
       features = data.features
       break
     } catch {
-      // try next strategy
+      try {
+        const data = await tryFetch(`${base}?$limit=${LIMIT}`)
+        features = data.features.filter(featureTouchesBbox)
+        break
+      } catch {
+        // try next dataset
+      }
     }
   }
 
-  if (!features) {
-    const data = await tryFetch(`${BASE_URL}?$limit=${LIMIT}`)
-    features = data.features.filter(featureTouchesBbox)
-  }
+  if (!features) features = []
 
   const segments = []
   for (const f of features) {
