@@ -2,6 +2,7 @@ import { useMemo, useRef, useEffect } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import BuildingMesh from './BuildingMesh'
+import Roads from './Roads'
 
 // ─── Scene constants (all colors reference DESIGN_SPEC.md tokens) ─────────────
 // Camera pulled back to show the full ~846m × 518m Beltline dataset
@@ -136,6 +137,8 @@ export default function CityScene({ buildings, selectedBuildingId, matchedIds, o
           onClick={onBuildingClick}
         />
       ))}
+
+      <Roads />
 
       <OrbitControls
         makeDefault
