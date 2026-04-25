@@ -1,36 +1,20 @@
 import { memo, useEffect, useMemo, useState } from 'react'
-import * as THREE from 'three'
+import { Line } from '@react-three/drei'
 import { fetchRoads } from '../utils/roads.js'
 
-const ROAD_COLOR   = '#3a342b'
-const ROAD_OPACITY = 0.4
-const ROAD_Y       = 1.0
-
-function buildGeometry(segments) {
-  // Each segment of N points contributes (N-1) line pairs = 2*(N-1) vertices.
-  let vertexCount = 0
-  for (const seg of segments) vertexCount += Math.max(0, seg.length - 1) * 2
-
-  const positions = new Float32Array(vertexCount * 3)
-  let i = 0
-  for (const seg of segments) {
-    for (let k = 0; k < seg.length - 1; k++) {
-      const [x1, z1] = seg[k]
-      const [x2, z2] = seg[k + 1]
-      positions[i++] = x1; positions[i++] = 0; positions[i++] = z1
-      positions[i++] = x2; positions[i++] = 0; positions[i++] = z2
-    }
-  }
-
-  const geom = new THREE.BufferGeometry()
-  geom.setAttribute('position', new THREE.BufferAttribute(positions, 3))
-  return geom
-}
+// Warm sodium-lamp amber — pairs with the dark warm ground (#0e0c09) and
+// evokes an illuminated street network. Drei's <Line> uses Line2 under the
+// hood, so lineWidth is respected (raw THREE.LineBasicMaterial.linewidth
+// silently clamps to 1px on every major browser).
+const ROAD_COLOR     = '#b88a4a'
+const ROAD_OPACITY   = 0.6
+const ROAD_LINEWIDTH = 1.5
+const ROAD_Y         = 1.0
 
 /**
- * Roads — fetches Calgary road centerlines on mount and renders them as
- * thin ground-level line segments. Roads are static, so the component is
- * memoized and the buffer geometry is built once via useMemo.
+ * Roads — fetches Calgary road centerlines on mount and renders them as a
+ * single fat-line batch. Roads are static, so the component is memoized and
+ * the projected point list is built once via useMemo.
  */
 function Roads() {
   const [segments, setSegments] = useState(null)
@@ -43,22 +27,33 @@ function Roads() {
     return () => { cancelled = true }
   }, [])
 
-  const geometry = useMemo(() => {
+  // Flatten segments into a points array of [x, y, z] pairs. With segments=true,
+  // drei treats consecutive points as discrete line segments (a, b, c, d → ab, cd).
+  const points = useMemo(() => {
     if (!segments || segments.length === 0) return null
-    return buildGeometry(segments)
+    const pts = []
+    for (const seg of segments) {
+      for (let k = 0; k < seg.length - 1; k++) {
+        const [x1, z1] = seg[k]
+        const [x2, z2] = seg[k + 1]
+        pts.push([x1, ROAD_Y, z1], [x2, ROAD_Y, z2])
+      }
+    }
+    return pts
   }, [segments])
 
-  if (!geometry) return null
+  if (!points) return null
 
   return (
-    <lineSegments geometry={geometry} position={[0, ROAD_Y, 0]}>
-      <lineBasicMaterial
-        color={ROAD_COLOR}
-        transparent
-        opacity={ROAD_OPACITY}
-        depthWrite={false}
-      />
-    </lineSegments>
+    <Line
+      points={points}
+      segments
+      color={ROAD_COLOR}
+      lineWidth={ROAD_LINEWIDTH}
+      transparent
+      opacity={ROAD_OPACITY}
+      depthWrite={false}
+    />
   )
 }
 

@@ -13,7 +13,11 @@ const SCENE_BG = '#1a1815'
 
 // Ground plane — var(--scene-ground), slightly darker than bg-base so the
 // ground reads as visually below the buildings, not the same plane
-const GROUND_COLOR = '#0e0c09'
+const GROUND_COLOR = '#3d352c'
+
+// Calgary's street grid is offset from true cardinal — small positive Y
+// rotation aligns buildings + roads to the ground-plane edges.
+const CITY_ROT_Y = Math.PI / 64  // ~+2.8°
 const GROUND_ARGS  = [2000, 2000]
 const GROUND_ROT   = [-Math.PI / 2, 0, 0]
 
@@ -126,19 +130,20 @@ export default function CityScene({ buildings, selectedBuildingId, matchedIds, o
       />
 
       <Ground />
-      <SurveyGrid />
 
-      {buildings.map(building => (
-        <BuildingMesh
-          key={building.id}
-          building={building}
-          isSelected={selectedBuildingId === building.id}
-          isHighlighted={matchedSet.has(building.id)}
-          onClick={onBuildingClick}
-        />
-      ))}
+      <group rotation={[0, CITY_ROT_Y, 0]}>
+        {buildings.map(building => (
+          <BuildingMesh
+            key={building.id}
+            building={building}
+            isSelected={selectedBuildingId === building.id}
+            isHighlighted={matchedSet.has(building.id)}
+            onClick={onBuildingClick}
+          />
+        ))}
 
-      <Roads />
+        <Roads />
+      </group>
 
       <OrbitControls
         makeDefault
