@@ -8,7 +8,10 @@ import { fetchRoads } from '../utils/roads.js'
 // against cool ambient; at dusk it picks up the warm sun tint.
 const ROAD_COLOR     = '#b88a4a'
 const ROAD_WIDTH     = 4    // metres — reads at the default camera distance
-const ROAD_Y         = 0.05 // sit just above the ground plane
+// y=0.5 prevents z-fighting against the 2000×2000 ground plane — 0.05 is
+// not enough at this scene scale (camera far=5000); GPU depth precision
+// causes the road quads to flicker. Same lesson as GRID_Y_OFFSET in CityScene.
+const ROAD_Y         = 0.5
 const ROAD_ROUGHNESS = 0.95
 const ROAD_METALNESS = 0.0
 
