@@ -1,6 +1,7 @@
 import { useMemo, useRef, useEffect } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
+import * as THREE from 'three'
 import BuildingMesh from './BuildingMesh'
 import Roads from './Roads'
 import { getSunState } from '../utils/sunlight'
@@ -43,6 +44,14 @@ const GRID_Y_OFFSET  = 1.0
 const SHADOW_MAP_SIZE      = [2048, 2048]
 const FILL_LIGHT_POS       = [-200, 200, -200]
 const FILL_LIGHT_COLOR     = '#aab8c4'
+
+// Shadow camera frustum — must enclose the entire scene (~800m wide) or
+// shadows get clipped. Default directional-light shadow camera is far too
+// small for this dataset and produces no visible shadows.
+const SHADOW_FRUSTUM = 600
+const SHADOW_NEAR    = 1
+const SHADOW_FAR     = 1500
+const SHADOW_BIAS    = -0.0005   // reduces shadow-acne on flat building tops
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -115,7 +124,7 @@ export default function CityScene({ buildings, selectedBuildingId, matchedIds, s
   const sun = useMemo(() => getSunState(sunHour), [sunHour])
 
   return (
-    <Canvas camera={CAMERA} shadows style={{ background: SCENE_BG }} onPointerMissed={onDeselect}>
+    <Canvas camera={CAMERA} shadows={{ type: THREE.PCFSoftShadowMap }} style={{ background: SCENE_BG }} onPointerMissed={onDeselect}>
       {/* Three-point lighting: warm ambient + warm directional primary + cool fill */}
       <ambientLight color={sun.ambientColor} intensity={sun.ambientIntensity} />
       <directionalLight
@@ -124,6 +133,13 @@ export default function CityScene({ buildings, selectedBuildingId, matchedIds, s
         intensity={sun.intensity}
         castShadow
         shadow-mapSize={SHADOW_MAP_SIZE}
+        shadow-bias={SHADOW_BIAS}
+        shadow-camera-near={SHADOW_NEAR}
+        shadow-camera-far={SHADOW_FAR}
+        shadow-camera-left={-SHADOW_FRUSTUM}
+        shadow-camera-right={SHADOW_FRUSTUM}
+        shadow-camera-top={SHADOW_FRUSTUM}
+        shadow-camera-bottom={-SHADOW_FRUSTUM}
       />
       <directionalLight
         position={FILL_LIGHT_POS}
