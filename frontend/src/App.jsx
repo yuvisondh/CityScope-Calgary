@@ -98,25 +98,19 @@ function App() {
         onDelete={deleteProject}
       />
 
-      {/* Time-of-day slider — sits just above the query bar */}
-      <div style={{
-        position: 'absolute',
-        bottom: 80,
-        left: '50%',
-        transform: 'translateX(-50%)',
-        zIndex: 10,
-      }}>
-        <TimeSlider value={sunHour} onChange={setSunHour} />
-      </div>
-
-      {/* Query bar — bottom center, 24px from bottom per spec Section 4 */}
+      {/* Time slider + query bar stacked so they never overlap */}
       <div style={{
         position: 'absolute',
         bottom: 24,
         left: '50%',
         transform: 'translateX(-50%)',
         zIndex: 10,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 8,
       }}>
+        <TimeSlider value={sunHour} onChange={setSunHour} />
         <QueryInput
           onSubmit={submitQuery}
           loading={queryLoading}
