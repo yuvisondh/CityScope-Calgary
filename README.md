@@ -1,6 +1,6 @@
-# Calgary 3D Dashboard
+# CityScope Calgary
 
-A 3D city dashboard for Calgary's Beltline neighbourhood. It renders 125 real buildings from Calgary Open Data as extruded 3D footprints, colored by zoning, with a natural language query interface backed by an LLM.
+A 3D city intelligence dashboard for exploring Calgary's Beltline district through natural language queries, real-time shadow studies, and interactive building inspection.
 
 **Author:** Yuvraj Sondh · April 2026
 
@@ -8,7 +8,7 @@ A 3D city dashboard for Calgary's Beltline neighbourhood. It renders 125 real bu
 
 ## Live Demo
 
-**[masiv-dashboard.vercel.app](https://masiv-dashboard.vercel.app)**
+**[cityscope-calgary.vercel.app](https://cityscope-calgary.vercel.app)**
 
 > The backend runs on Render's free tier and sleeps after 15 minutes of inactivity. The first load may take 20–30 seconds — this is expected. Subsequent interactions are instant.
 
@@ -19,13 +19,13 @@ A 3D city dashboard for Calgary's Beltline neighbourhood. It renders 125 real bu
 ## Screenshots
 
 ### City overview
-![City overview](docs/screenshots/overview.png)
+![3D view of Calgary's Beltline with buildings colored by zoning](docs/screenshots/01-city-overview.png)
 
 ### Building inspection
-![Building inspection panel](docs/screenshots/inspection.png)
+![Building inspection panel showing height, zoning, and assessed value](docs/screenshots/02-inspection.png)
 
 ### LLM query active
-![LLM query with highlighted buildings](docs/screenshots/query.png)
+![Query results with matched buildings highlighted in red](docs/screenshots/03-query.png)
 
 ---
 
@@ -33,6 +33,8 @@ A 3D city dashboard for Calgary's Beltline neighbourhood. It renders 125 real bu
 
 - **125 real Calgary buildings** extruded from GeoJSON footprints with real heights from the 2026 assessment roll
 - **Zoning color system** — four data-driven buckets (Mixed-use commercial, Commercial corridor, High-density commercial, Direct control) matched to the actual Beltline dataset
+- **Road network overlay** — 173 real Calgary street centerlines from Open Data rendered as ground-level lit ribbon meshes
+- **Time-of-day lighting slider** — architectural shadow study simulation with sun position, color temperature, and shadow direction across a full 24-hour cycle
 - **Natural language queries** via Groq (llama-3.3-70b-versatile) — ask "show buildings over 100 feet", "show CC-X zoning", "most expensive buildings"
 - **Superlative queries** — "tallest", "shortest", "most expensive", "cheapest" are intercepted before the LLM and resolved via sort + top-5 ranking
 - **Regex fallback** — if Groq is unavailable, a regex parser handles common patterns (height, value, zoning, land use, floor count)
@@ -130,7 +132,7 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 | Variable          | Required        | Default                       | Description                              |
 | ----------------- | --------------- | ----------------------------- | ---------------------------------------- |
-| `LLM_PROVIDER`    | No              | `huggingface`                 | Set to `groq` to enable the LLM          |
+| `LLM_PROVIDER`    | No              | `groq`                        | Set to `groq` to enable the LLM          |
 | `GROQ_API_KEY`    | For LLM queries | —                             | Your Groq API key                        |
 | `GROQ_MODEL`      | No              | `llama-3.3-70b-versatile`     | Groq model ID                            |
 | `FRONTEND_URL`    | No              | `http://localhost:5173`       | CORS origin(s) — comma-separated for prod|
@@ -174,7 +176,7 @@ Building data was fetched once via Calgary's SODA API (`scripts/fetch_data.py`) 
 ## Project structure
 
 ```
-masiv-dashboard/
+cityscope-calgary/
 ├── backend/
 │   ├── app.py                  # Flask app, CORS, startup loader
 │   ├── config.py               # Environment variables
@@ -197,6 +199,8 @@ masiv-dashboard/
 │       ├── components/
 │       │   ├── CityScene.jsx        # Three.js canvas, lighting, ground
 │       │   ├── BuildingMesh.jsx     # Per-building extruded mesh
+│       │   ├── Roads.jsx            # Road network ribbon meshes
+│       │   ├── TimeSlider.jsx       # Time-of-day sun position slider
 │       │   ├── BuildingInfoPanel.jsx
 │       │   ├── QueryInput.jsx
 │       │   ├── ProjectPanel.jsx
@@ -205,7 +209,7 @@ masiv-dashboard/
 │           ├── geo.js          # lat/lon → Three.js XZ conversion
 │           └── zoning.js       # BUCKETS array + zoningToBucket()
 ├── docs/
-│   ├── screenshots/            # overview.png, inspection.png, query.png
+│   ├── screenshots/            # 01-city-overview.png, 02-inspection.png, 03-query.png
 │   └── uml/                    # Architecture, class, and sequence diagrams (PNG + .mmd source)
 ├── DESIGN_SPEC.md              # Visual design specification
 └── DECISIONS.md                # Engineering decisions and rationale
@@ -248,10 +252,14 @@ Full-resolution diagrams are in `docs/uml/`.
 
 - **Desktop only** — the 3D canvas is not optimized for mobile viewports
 - **Saved projects are ephemeral** — on the free Render tier, the SQLite database resets on redeploy. A production deployment would use a managed database.
-- **No tests** — given the 36-hour timeline, pytest coverage for the regex parser and superlative logic would be the first addition
+- **No tests** — pytest coverage for the regex parser and superlative logic would be the first addition
 - **Beltline only** — the dataset covers one Calgary neighbourhood. Expanding coverage would require re-running `scripts/fetch_data.py` with wider bounding box parameters
 - **Composite superlative queries** — "tallest commercial building" is not yet supported; the superlative preprocessor runs before comparison filters are applied
 
 ---
+
+## Source
+
+GitHub: [github.com/yuvisondh/cityscope-calgary](https://github.com/yuvisondh/cityscope-calgary)
 
 *Data sourced from City of Calgary Open Data — 2026 assessment roll and building footprints.*
